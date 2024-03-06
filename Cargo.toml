@@ -3,9 +3,16 @@ name = "tsar"
 description = "Official TSAR Library"
 version = "1.0.0"
 edition = "2021"
-readme = "README.md"
-repository = ""
 license = "MIT"
+readme = "README.md"
 documentation = "https://docs.tsar.cc"
+repository = "https://github.com/tsarcc/tsar-rust"
 
 [dependencies]
+reqwest = { version = "0.11.0", features = ['json', 'blocking'] }
+serde_json = { version = "1" }
+open = "5.0.0"
+
+base64 = "0.22.0"
+k256 = "0.13.0"
+ecdsa = { version = "0.16.9", features = ['pem'] }
