@@ -1,0 +1,11 @@
+[package]
+name = "tsar"
+description = "Official TSAR Library"
+version = "1.0.0"
+edition = "2021"
+readme = "README.md"
+repository = ""
+license = "MIT"
+documentation = "https://docs.tsar.cc"
+
+[dependencies]
