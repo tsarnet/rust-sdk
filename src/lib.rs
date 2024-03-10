@@ -105,7 +105,7 @@ impl Client {
     /// Check if the passed HWID is authorized to use the application.
     pub fn validate_user(&self, hwid: &str) -> Result<(), ValidateError> {
         let url = format!(
-            "{}/api/v1/apps/{}/subscribers/validate?hwid={}",
+            "{}/api/client/v1/apps/{}/subscribers/validate?hwid={}",
             BASE_URL, self.app_id, hwid
         );
 
