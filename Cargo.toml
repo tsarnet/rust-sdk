@@ -9,6 +9,7 @@ authors = ["x <x@tsar.cc>"]
 homepage = "https://tsar.cc/"
 edition = "2021"
 license = "MIT"
+include = ["**/*.rs", "Cargo.toml"]
 
 [dependencies]
 reqwest = { version = "0.11.0", features = ['json', 'blocking'] }
