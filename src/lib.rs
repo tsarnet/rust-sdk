@@ -13,7 +13,7 @@ use k256::Secp256k1;
 use reqwest::StatusCode;
 use serde_json::Value;
 use std::thread;
-use std::time::{Duration, Instant};
+use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 mod errors;
 
@@ -25,7 +25,6 @@ mod tests {
     #[test]
     fn authenticate_user() {
         let pub_key_str = "MFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAENTPgmKaQ7HBLH1WHHIa3hMII4UFLeF9X+ax27c7OtY5n+ZWszc6ozwLjxj8i4h6dQBDxKoUc8IiU7/iu2VPQ1w==";
-
         let app_id = "56e15ddc-d0ac-489e-add2-9b1d742a6cf6";
 
         let api = Client::new(app_id, pub_key_str);
@@ -33,11 +32,11 @@ mod tests {
         let result = api.authenticate_user();
 
         if result.is_err() {
-            println!("ERR: {:?}", result.unwrap_err());
+            println!("Test Error: {:?}", result.unwrap_err());
             assert!(false);
+        } else {
+            assert!(true);
         }
-
-        assert!(true);
     }
 }
 
@@ -115,8 +114,6 @@ impl Client {
             .unwrap();
 
         if !response.status().is_success() {
-            println!("CODE: {}", response.status());
-
             match response.status() {
                 StatusCode::NOT_FOUND => return Err(ValidateError::UserNotFound),
                 _ => return Err(ValidateError::ServerError),
@@ -126,7 +123,7 @@ impl Client {
         // Parse body into JSON
         let data = response
             .json::<Value>()
-            .map_err(|_| ValidateError::FailedToParse)
+            .map_err(|_| ValidateError::FailedToParseBody)
             .unwrap();
 
         // Get the base64-encoded data from the response
@@ -143,12 +140,42 @@ impl Client {
             .ok_or(ValidateError::FailedToGetSignature)
             .unwrap();
 
-        // Decode the base64-encoded data and signature (both become buffers)
+        // Decode the base64-encoded data (turns into buffer)
         let data_bytes = BASE64_STANDARD
             .decode(base64_data)
             .map_err(|_| ValidateError::FailedToDecodeData)
             .unwrap();
 
+        // Get the decoded body in JSON
+        let json: Value = serde_json::from_str(
+            &String::from_utf8(data_bytes.clone())
+                .map_err(|_| ValidateError::FailedToParseData)
+                .unwrap(),
+        )
+        .map_err(|_| ValidateError::FailedToParseData)
+        .unwrap();
+
+        // Get the timestamp value
+        let timestamp = json
+            .get("timestamp")
+            .ok_or(ValidateError::FailedToGetTimestamp)
+            .unwrap()
+            .as_number()
+            .ok_or(ValidateError::FailedToParseTimestamp)
+            .unwrap()
+            .as_u64()
+            .ok_or(ValidateError::FailedToParseTimestamp)
+            .unwrap();
+
+        // Verify that the timestamp is less than least 30 seconds old
+        let timestamp_system_time = UNIX_EPOCH + Duration::from_secs(timestamp / 1000);
+        let thirty_seconds_ago = SystemTime::now() - Duration::from_secs(30);
+
+        if timestamp_system_time < thirty_seconds_ago {
+            return Err(ValidateError::OldResponse);
+        }
+
+        // Decode the base64-encoded signature (turns into buffer)
         let signature_bytes = BASE64_STANDARD
             .decode(base64_signature)
             .map_err(|_| ValidateError::FailedToDecodeSignature)

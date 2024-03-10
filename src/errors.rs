@@ -31,7 +31,7 @@ pub enum ValidateError {
     ServerError,
     /// Failed to parse returned body into JSON.
     #[error("Failed to parse returned body into JSON.")]
-    FailedToParse,
+    FailedToParseBody,
 
     /// Failed to get the `data` field from the parsed JSON body.
     #[error("Failed to get the data field from the parsed JSON body.")]
@@ -50,6 +50,16 @@ pub enum ValidateError {
     #[error("Failed to decode the public key from base64.")]
     FailedToDecodePubKey,
 
+    /// Failed to parse the `data` field into JSON.
+    #[error("Failed to parse the `data` field into JSON.")]
+    FailedToParseData,
+    /// Failed to get the `timestamp` field.
+    #[error("Failed to get the `timestamp` field.")]
+    FailedToGetTimestamp,
+    /// Failed to parse the `timestamp` field into u64.
+    #[error("Failed to parse the `timestamp` field into u64.")]
+    FailedToParseTimestamp,
+
     /// Failed to build the verifying key using der.
     #[error("Failed to build the verifying key using der.")]
     FailedToBuildKey,
@@ -57,6 +67,9 @@ pub enum ValidateError {
     #[error("Failed to build signature using buffer.")]
     FailedToBuildSignature,
 
+    /// The response is older than 30 seconds. Data may have been tampered with.
+    #[error("The response is older than 30 seconds.")]
+    OldResponse,
     /// Signature is not authentic. Data may have been tampered with.
     #[error("Signature is not authentic.")]
     InvalidSignature,
