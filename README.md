@@ -2,8 +2,6 @@
 
 This is the official TSAR Client API wrapper for rust.
 
----
-
 ## Example Import
 
 ```toml
