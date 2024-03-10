@@ -17,30 +17,35 @@ use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 mod errors;
 
+#[cfg(test)]
+const BASE_URL: &str = "http://localhost:5173";
+
+#[cfg(not(test))]
+const BASE_URL: &str = "https://tsar.cc";
+
 // Tester
 #[cfg(test)]
 mod tests {
     use crate::Client;
 
+    // These values are not valid on the public server, so make sure to change them if you want to run tests.
+    const PUBLIC_KEY: &str = "MFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAENTPgmKaQ7HBLH1WHHIa3hMII4UFLeF9X+ax27c7OtY5n+ZWszc6ozwLjxj8i4h6dQBDxKoUc8IiU7/iu2VPQ1w==";
+    const APP_ID: &str = "56e15ddc-d0ac-489e-add2-9b1d742a6cf6";
+
     #[test]
     fn authenticate_user() {
-        let pub_key_str = "MFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAENTPgmKaQ7HBLH1WHHIa3hMII4UFLeF9X+ax27c7OtY5n+ZWszc6ozwLjxj8i4h6dQBDxKoUc8IiU7/iu2VPQ1w==";
-        let app_id = "56e15ddc-d0ac-489e-add2-9b1d742a6cf6";
-
-        let api = Client::new(app_id, pub_key_str);
+        let api = Client::new(APP_ID, PUBLIC_KEY);
 
         let result = api.authenticate_user();
 
         if result.is_err() {
             println!("Test Error: {:?}", result.unwrap_err());
             assert!(false);
-        } else {
-            assert!(true);
         }
+
+        assert!(true);
     }
 }
-
-const BASE_URL: &str = "http://localhost:5173";
 
 /// The TSAR Client struct. Used to interact with the API.
 pub struct Client {
