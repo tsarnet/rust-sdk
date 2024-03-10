@@ -4,16 +4,18 @@
 //! Official wrapper for the TSAR client API.
 
 use base64::prelude::*;
-use ecdsa::signature::Verifier;
-use ecdsa::{Signature, VerifyingKey};
 use errors::{AuthError, ValidateError};
 use hardware_id::get_id;
-use k256::pkcs8::DecodePublicKey;
-use k256::Secp256k1;
+use k256::{
+    ecdsa::{signature::Verifier, Signature, VerifyingKey},
+    pkcs8::DecodePublicKey,
+};
 use reqwest::StatusCode;
 use serde_json::Value;
-use std::thread;
-use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
+use std::{
+    thread,
+    time::{Duration, Instant, SystemTime, UNIX_EPOCH},
+};
 
 mod errors;
 
@@ -192,7 +194,7 @@ impl Client {
             .unwrap();
 
         // Build key from public key pem
-        let v_pub_key: VerifyingKey<Secp256k1> =
+        let v_pub_key: VerifyingKey =
             VerifyingKey::from_public_key_der(pub_key_bytes[..].try_into().unwrap())
                 .map_err(|_| ValidateError::FailedToBuildKey)
                 .unwrap();

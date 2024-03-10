@@ -18,5 +18,4 @@ open = "5.0.0"
 thiserror = "1.0.0"
 base64 = "0.22.0"
 k256 = "0.13.0"
-ecdsa = { version = "0.16.9", features = ['pem'] }
 hardware-id = "0.3.0"
