@@ -5,13 +5,13 @@ This is the official TSAR Client API wrapper for rust.
 ## Example Import
 
 ```toml
-tsar = "1.0.0"
+tsar-client = "1.0.0"
 ```
 
 ## Example Usage
 
 ```rs
-use tsar::Client;
+use tsar_client::Client;
 
 let api = Client::new(APP_ID, PUBLIC_KEY);
 
