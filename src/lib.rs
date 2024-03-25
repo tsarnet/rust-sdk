@@ -6,7 +6,7 @@
 use base64::prelude::*;
 use errors::{AuthError, ValidateError};
 use hardware_id::get_id;
-use k256::{
+use p256::{
     ecdsa::{signature::Verifier, Signature, VerifyingKey},
     pkcs8::DecodePublicKey,
 };
@@ -146,14 +146,13 @@ impl Client {
             .map_err(|_| ValidateError::FailedToDecodeData)
             .unwrap();
 
-        // Get the decoded body in JSON
-        let json: Value = serde_json::from_str(
-            &String::from_utf8(data_bytes.clone())
-                .map_err(|_| ValidateError::FailedToParseData)
-                .unwrap(),
-        )
-        .map_err(|_| ValidateError::FailedToParseData)
-        .unwrap();
+        // Get json string
+        let json_string = String::from_utf8(data_bytes.clone())
+            .map_err(|_| ValidateError::FailedToParseData)
+            .unwrap();
+
+        // Turn string to json
+        let json: Value = serde_json::from_str(&json_string).unwrap();
 
         // Get the timestamp value
         let timestamp = json
@@ -189,12 +188,12 @@ impl Client {
         // Build key from public key pem
         let v_pub_key: VerifyingKey =
             VerifyingKey::from_public_key_der(pub_key_bytes[..].try_into().unwrap())
-                .map_err(|_| ValidateError::FailedToBuildKey)
+                // .map_err(|_| ValidateError::FailedToBuildKey)
                 .unwrap();
 
         // Build signature from buffer
-        let mut signature = Signature::from_der(signature_bytes[..].try_into().unwrap())
-            .map_err(|_| ValidateError::FailedToBuildSignature)
+        let mut signature = Signature::from_bytes(signature_bytes[..].try_into().unwrap())
+            // .map_err(|_| ValidateError::FailedToBuildSignature)
             .unwrap();
 
         // NodeJS sucks so we need to normalize the sig
