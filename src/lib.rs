@@ -22,11 +22,13 @@ mod errors;
 // Tester
 #[cfg(test)]
 mod tests {
+    //  cargo test -- --nocapture
+
     use crate::Client;
 
     // These values are not valid on the public server, so make sure to change them if you want to run tests.
-    const PUBLIC_KEY: &str = "MFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAENTPgmKaQ7HBLH1WHHIa3hMII4UFLeF9X+ax27c7OtY5n+ZWszc6ozwLjxj8i4h6dQBDxKoUc8IiU7/iu2VPQ1w==";
-    const APP_ID: &str = "56e15ddc-d0ac-489e-add2-9b1d742a6cf6";
+    const PUBLIC_KEY: &str = "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAExtzBFzUUFyoXJO6nbJnS6fe67uJzcmOQFn/4cyf+4/4AB+oa375h75XVPJMrj0qHK8F+C+oZZXlXGm49tIAH5Q==";
+    const APP_ID: &str = "5009e261-eac2-493e-a5d7-fa15e14f12a1";
 
     #[test]
     fn authenticate_user() {
@@ -75,10 +77,7 @@ impl Client {
             },
         };
 
-        if let Err(_) = open::that(format!(
-            "https://tsar.cc/auth/{}?hwid={}",
-            self.app_id, hwid
-        )) {
+        if let Err(_) = open::that(format!("https://tsar.cc/auth/{}/{}", self.app_id, hwid)) {
             return Err(AuthError::FailedToOpenBrowser);
         }
 
