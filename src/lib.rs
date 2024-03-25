@@ -76,7 +76,7 @@ impl Client {
         };
 
         if let Err(_) = open::that(format!(
-            "https://auth.tsar.cc/{}?hwid={}",
+            "https://tsar.cc/auth/{}?hwid={}",
             self.app_id, hwid
         )) {
             return Err(AuthError::FailedToOpenBrowser);
