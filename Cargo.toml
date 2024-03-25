@@ -1,6 +1,6 @@
 [package]
 name = "tsar-client"
-version = "1.0.0"
+version = "1.0.1"
 description = "Official wrapper for the TSAR Client API"
 repository = "https://github.com/tsarcc/tsar-rust"
 keywords = ["api", "framework", "windows", "macos", "linux"]

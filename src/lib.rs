@@ -19,12 +19,6 @@ use std::{
 
 mod errors;
 
-#[cfg(test)]
-const BASE_URL: &str = "http://localhost:5173";
-
-#[cfg(not(test))]
-const BASE_URL: &str = "https://tsar.cc";
-
 // Tester
 #[cfg(test)]
 mod tests {
@@ -82,8 +76,8 @@ impl Client {
         };
 
         if let Err(_) = open::that(format!(
-            "{}/apps/{}/validate/{}",
-            BASE_URL, self.app_id, hwid
+            "https://auth.tsar.cc/{}?hwid={}",
+            self.app_id, hwid
         )) {
             return Err(AuthError::FailedToOpenBrowser);
         }
@@ -112,8 +106,8 @@ impl Client {
     /// Check if the passed HWID is authorized to use the application.
     pub fn validate_user(&self, hwid: &str) -> Result<(), ValidateError> {
         let url = format!(
-            "{}/api/client/v1/apps/{}/subscribers/validate?hwid={}",
-            BASE_URL, self.app_id, hwid
+            "https://tsar.cc/api/client/v1/apps/{}/subscribers/validate?hwid={}",
+            self.app_id, hwid
         );
 
         let response = reqwest::blocking::get(&url)
