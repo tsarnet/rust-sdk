@@ -5,7 +5,7 @@ This is the official TSAR Client API wrapper for rust.
 ## Example Import
 
 ```toml
-tsar-client = "1.0.0"
+tsar-client = "*"
 ```
 
 ## Example Usage
@@ -15,9 +15,8 @@ use tsar_client::Client;
 
 let api = Client::new(APP_ID, PUBLIC_KEY);
 
-let result = api.authenticate_user();
-
-if result.is_ok() {
-    // User authenticated
+match api.authenticate_user() {
+    Ok(data) => println!("Success: {:?}", data), // Auth Success
+    Err(err) => println!("\x1b[31m[AUTH ERROR] {:?}\x1b[0m: {}", err, err), // Auth Failed
 }
 ```
