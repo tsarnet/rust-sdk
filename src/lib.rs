@@ -56,33 +56,33 @@ mod tests {
 /// Data returned by the server when running `authenticate_user()` or `validate_user()`.
 #[derive(Default, Debug, Serialize, Deserialize)]
 pub struct Data {
-    user: User,
-    subscription: Subscription,
-    timestamp: u64,
+    pub user: User,
+    pub subscription: Subscription,
+    pub timestamp: u64,
 }
 
 /// User object which gets returned as part of `authenticate_user()` or `validate_user()`.
 #[derive(Default, Debug, Serialize, Deserialize)]
 pub struct User {
-    id: String,
-    username: Option<String>,
-    avatar: Option<String>,
+    pub id: String,
+    pub username: Option<String>,
+    pub avatar: Option<String>,
 }
 
 /// Subscription object which gets returned as part of `authenticate_user()` or `validate_user()`.
 #[derive(Default, Debug, Serialize, Deserialize)]
 pub struct Subscription {
-    id: String,
+    pub id: String,
     /// Timestamp of when the subscription expires
-    expires: Option<i64>,
+    pub expires: Option<i64>,
 }
 
 /// The TSAR Client struct. Used to interact with the API after it's initialized.
 pub struct Client {
     /// The ID of your TSAR app. Should be in UUID format: 00000000-0000-0000-0000-000000000000
-    app_id: String,
+    pub app_id: String,
     /// The public decryption key for your TSAR app. Should be in base64 format.
-    client_key: String,
+    pub client_key: String,
 }
 
 impl Client {
