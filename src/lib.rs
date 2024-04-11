@@ -43,7 +43,7 @@ mod tests {
 
 /// Data returned by the server when running `authenticate_user()` or `validate_user()`.
 #[derive(Debug, Serialize, Deserialize)]
-struct Data {
+pub struct Data {
     user: User,
     subscription: Subscription,
     timestamp: u64,
@@ -51,7 +51,7 @@ struct Data {
 
 /// User object which gets returned as part of `authenticate_user()` or `validate_user()`.
 #[derive(Debug, Serialize, Deserialize)]
-struct User {
+pub struct User {
     id: String,
     username: Option<String>,
     avatar: Option<String>,
@@ -59,7 +59,7 @@ struct User {
 
 /// Subscription object which gets returned as part of `authenticate_user()` or `validate_user()`.
 #[derive(Debug, Serialize, Deserialize)]
-struct Subscription {
+pub struct Subscription {
     id: String,
     /// Timestamp of when the subscription expires
     expires: Option<i64>,
