@@ -20,3 +20,17 @@ thiserror = "1.0.0"
 base64 = "0.22.0"
 p256 = { version = "0.13.2", features = ["ecdsa-core"] }
 hardware-id = "0.3.0"
+
+# Obfuscation
+debugoff = { version = '0.2.2', features = ['obfuscate', 'syscallobf'] }
+goldberg = "0.1.0"
+
+# Anti-debug Release
+[profile.release]
+stack-protector = true
+strip = "symbols"
+panic = "abort"
+opt-level = 3
+debug = false
+lto = true
+cfi = true

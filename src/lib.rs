@@ -5,6 +5,7 @@
 
 use base64::prelude::*;
 use errors::{AuthError, ValidateError};
+use goldberg::goldberg_stmts;
 use hardware_id::get_id;
 use p256::{
     ecdsa::{signature::Verifier, Signature, VerifyingKey},
@@ -17,6 +18,17 @@ use std::{
     thread,
     time::{Duration, Instant, SystemTime, UNIX_EPOCH},
 };
+
+// Debugoff
+#[cfg(all(target_os = "linux", not(debug_assertions)))]
+use debugoff;
+
+macro_rules! dbo {
+    () => {
+        #[cfg(all(target_os = "linux", not(debug_assertions)))]
+        debugoff::multi_ptraceme_or_die();
+    };
+}
 
 mod errors;
 
@@ -42,7 +54,7 @@ mod tests {
 }
 
 /// Data returned by the server when running `authenticate_user()` or `validate_user()`.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Default, Debug, Serialize, Deserialize)]
 pub struct Data {
     user: User,
     subscription: Subscription,
@@ -50,7 +62,7 @@ pub struct Data {
 }
 
 /// User object which gets returned as part of `authenticate_user()` or `validate_user()`.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Default, Debug, Serialize, Deserialize)]
 pub struct User {
     id: String,
     username: Option<String>,
@@ -58,7 +70,7 @@ pub struct User {
 }
 
 /// Subscription object which gets returned as part of `authenticate_user()` or `validate_user()`.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Default, Debug, Serialize, Deserialize)]
 pub struct Subscription {
     id: String,
     /// Timestamp of when the subscription expires
@@ -76,16 +88,26 @@ pub struct Client {
 impl Client {
     /// Creates a new TSAR client using an `app_id` and `client_key` variables.
     pub fn new(app_id: &str, client_key: &str) -> Self {
-        Self {
-            app_id: app_id.to_string(),
-            client_key: client_key.to_string(),
-        }
+        let result: Self = goldberg_stmts! {{
+
+                Self {
+                    app_id: app_id.to_string(),
+                    client_key: client_key.to_string(),
+                }
+
+        }};
+
+        result
     }
 
     /// Starts an authentication flow which attempts to authenticate the user.
     /// If the user's HWID is not already authorized, the function opens the user's default browser to authenticate them.
     pub fn authenticate_user(&self) -> Result<Data, AuthError> {
-        let hwid = get_id().or(Err(AuthError::FailedToGetHWID))?;
+        let hwid = goldberg_stmts! {{
+            dbo!();
+
+            get_id().or(Err(AuthError::FailedToGetHWID))?
+        }};
 
         // Attempt to validate user
         match self.validate_user(hwid.as_str()) {
@@ -98,16 +120,24 @@ impl Client {
             },
         };
 
-        // Open default browser
-        if let Err(_) = open::that(format!("https://tsar.cc/auth/{}/{}", self.app_id, hwid)) {
-            return Err(AuthError::FailedToOpenBrowser);
-        }
+        goldberg_stmts! {{
+            dbo!();
+
+            // Open default browser
+            if let Err(_) = open::that(format!("https://tsar.cc/auth/{}/{}", self.app_id, hwid)) {
+                return Err(AuthError::FailedToOpenBrowser);
+            }
+        }};
 
         // Start validation loop
-        let start_time = Instant::now();
+        let start_time = goldberg_stmts! {{
+            Instant::now()
+        }};
 
         loop {
             thread::sleep(Duration::from_millis(5000));
+
+            dbo!();
 
             match self.validate_user(hwid.as_str()) {
                 Ok(data) => return Ok(data),
@@ -119,93 +149,118 @@ impl Client {
                 },
             };
 
-            if start_time.elapsed() >= Duration::from_secs(600) {
-                return Err(AuthError::Timeout);
-            }
+            goldberg_stmts! {{
+                if start_time.elapsed() >= Duration::from_secs(600) {
+                    return Err(AuthError::Timeout);
+                }
+            }};
         }
     }
 
     /// Check if a HWID is authorized to use the application.
     pub fn validate_user(&self, hwid: &str) -> Result<Data, ValidateError> {
-        let url = format!(
-            "https://tsar.cc/api/client/v1/subscriptions/validate?app={}&hwid={}",
-            self.app_id, hwid
-        );
+        let pub_key_bytes = goldberg_stmts! {{
+            dbo!();
 
-        let response = reqwest::blocking::get(&url).or(Err(ValidateError::RequestFailed))?;
-        if !response.status().is_success() {
-            match response.status() {
-                StatusCode::NOT_FOUND => return Err(ValidateError::UserNotFound),
-                _ => return Err(ValidateError::ServerError),
-            }
-        }
+            BASE64_STANDARD
+                .decode(self.client_key.as_str())
+                .or(Err(ValidateError::FailedToDecodePubKey))?
+        }};
 
-        // Parse body into JSON
-        let data = response
-            .json::<Value>()
-            .or(Err(ValidateError::FailedToParseBody))?;
-
-        // Get the base64-encoded data from the response
-        let base64_data = data
-            .get("data")
-            .and_then(|v| v.as_str())
-            .ok_or(ValidateError::FailedToGetData)?;
-        // Get the base64-encoded signature from the response
-        let base64_signature = data
-            .get("signature")
-            .and_then(|v| v.as_str())
-            .ok_or(ValidateError::FailedToGetSignature)?;
-        // Decode the base64-encoded data (turns into buffer)
-        let data_bytes = BASE64_STANDARD
-            .decode(base64_data)
-            .or(Err(ValidateError::FailedToDecodeData))?;
-
-        // Get json string
-        let json_string =
-            String::from_utf8(data_bytes.clone()).or(Err(ValidateError::FailedToParseData))?;
-        // Turn string to json
-        let json: Data =
-            serde_json::from_str(&json_string).or(Err(ValidateError::FailedToParseData))?;
-
-        // Get the timestamp value
-        let timestamp = json.timestamp;
-
-        // Verify that the timestamp is less than least 30 seconds old
-        let timestamp_system_time = UNIX_EPOCH + Duration::from_secs(timestamp / 1000);
-        let thirty_seconds_ago = SystemTime::now() - Duration::from_secs(30);
-
-        if timestamp_system_time < thirty_seconds_ago {
-            return Err(ValidateError::OldResponse);
-        }
-
-        // Decode the base64-encoded signature (turns into buffer)
-        let signature_bytes = BASE64_STANDARD
-            .decode(base64_signature)
-            .or(Err(ValidateError::FailedToDecodeSignature))?;
-
-        let pub_key_bytes = BASE64_STANDARD
-            .decode(self.client_key.as_str())
-            .or(Err(ValidateError::FailedToDecodePubKey))?;
+        dbo!();
 
         // Build key from public key pem
-        let v_pub_key: VerifyingKey =
+        let pub_key: VerifyingKey =
             VerifyingKey::from_public_key_der(pub_key_bytes[..].try_into().unwrap())
                 .or(Err(ValidateError::FailedToBuildKey))?;
 
-        // Build signature from buffer
-        let mut signature = Signature::from_bytes(signature_bytes[..].try_into().unwrap())
-            .or(Err(ValidateError::FailedToBuildSignature))?;
+        #[allow(non_camel_case_types)]
+        let result: Result<Data, ValidateError> = goldberg_stmts! {{
+            dbo!();
 
-        // NodeJS sucks so we need to normalize the sig
-        signature = signature.normalize_s().unwrap_or(signature);
+            let url = format!(
+                "https://tsar.cc/api/client/v1/subscriptions/validate?app={}&hwid={}",
+                self.app_id, hwid
+            );
 
-        // Verify the signature
-        let result = v_pub_key.verify(&data_bytes, &signature);
+            let response = reqwest::blocking::get(&url).or(Err(ValidateError::RequestFailed))?;
 
-        if result.is_ok() {
-            return Ok(json);
-        }
+            if !response.status().is_success() {
+                match response.status() {
+                    StatusCode::NOT_FOUND => return Err(ValidateError::UserNotFound),
+                    _ => return Err(ValidateError::ServerError),
+                }
+            }
 
-        Err(ValidateError::InvalidSignature)
+            // Parse body into JSON
+            let data = response
+                .json::<Value>()
+                .or(Err(ValidateError::FailedToParseBody))?;
+
+            // Get the base64-encoded data from the response
+            let base64_data = data
+                .get("data")
+                .and_then(|v| v.as_str())
+                .ok_or(ValidateError::FailedToGetData)?;
+
+            // Get the base64-encoded signature from the response
+            let base64_signature = data
+                .get("signature")
+                .and_then(|v| v.as_str())
+                .ok_or(ValidateError::FailedToGetSignature)?;
+
+            // Decode the base64-encoded data (turns into buffer)
+            let data_bytes = BASE64_STANDARD
+                .decode(base64_data)
+                .or(Err(ValidateError::FailedToDecodeData))?;
+
+            // Get json string
+            let json_string =
+                String::from_utf8(data_bytes.clone()).or(Err(ValidateError::FailedToParseData))?;
+
+            // Turn string to json
+            let json: Data =
+                serde_json::from_str(&json_string).or(Err(ValidateError::FailedToParseData))?;
+
+            // Get the timestamp value
+            let timestamp = json.timestamp;
+
+            dbo!();
+
+            // Verify that the timestamp is less than least 30 seconds old
+            let timestamp_system_time = UNIX_EPOCH + Duration::from_secs(timestamp / 1000);
+            let thirty_seconds_ago = SystemTime::now() - Duration::from_secs(30);
+
+            if timestamp_system_time < thirty_seconds_ago {
+                return Err(ValidateError::OldResponse);
+            }
+
+            // Decode the base64-encoded signature (turns into buffer)
+            let signature_bytes = BASE64_STANDARD
+                .decode(base64_signature)
+                .or(Err(ValidateError::FailedToDecodeSignature))?;
+
+
+
+            // Build signature from buffer
+            let mut signature = Signature::from_bytes(signature_bytes[..].try_into().unwrap())
+                .or(Err(ValidateError::FailedToBuildSignature))?;
+
+            // NodeJS sucks so we need to normalize the sig
+            signature = signature.normalize_s().unwrap_or(signature);
+
+            dbo!();
+
+            // Verify the signature
+            let result = pub_key.verify(&data_bytes, &signature);
+
+            if result.is_ok() {
+                return Ok(json);
+            }
+
+            Err(ValidateError::InvalidSignature)
+        }};
+
+        result
     }
 }
