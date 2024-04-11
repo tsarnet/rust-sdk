@@ -2,7 +2,7 @@
 name = "tsar-client"
 version = "0.0.1"
 description = "Official wrapper for the TSAR Client API"
-repository = "https://github.com/tsarcc/tsar-rust"
+repository = "https://github.com/tsar-sec/rust-wrapper"
 keywords = ["api", "framework", "windows", "macos", "linux"]
 categories = ["api-bindings"]
 authors = ["x <x@tsar.cc>"]
