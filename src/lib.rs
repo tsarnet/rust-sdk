@@ -3,6 +3,8 @@
 
 //! Official wrapper for the TSAR client API.
 
+#![allow(non_camel_case_types)]
+
 use base64::prelude::*;
 use errors::{AuthError, ValidateError};
 use goldberg::goldberg_stmts;
@@ -90,16 +92,12 @@ pub struct Client {
 impl Client {
     /// Creates a new TSAR client using an `app_id` and `client_key` variables.
     pub fn new(app_id: &str, client_key: &str) -> Self {
-        let result: Self = goldberg_stmts! {{
-
-                Self {
-                    app_id: app_id.to_string(),
-                    client_key: client_key.to_string(),
-                }
-
-        }};
-
-        result
+        goldberg_stmts! {{
+            Self {
+                app_id: app_id.to_string(),
+                client_key: client_key.to_string(),
+            }
+        }}
     }
 
     /// Starts an authentication flow which attempts to authenticate the user.
@@ -176,8 +174,7 @@ impl Client {
             VerifyingKey::from_public_key_der(pub_key_bytes[..].try_into().unwrap())
                 .or(Err(ValidateError::FailedToBuildKey))?;
 
-        #[allow(non_camel_case_types)]
-        let result: Result<Data, ValidateError> = goldberg_stmts! {{
+        goldberg_stmts! {{
             dbo!();
 
             let url = format!(
@@ -273,8 +270,6 @@ impl Client {
             }
 
             Err(ValidateError::InvalidSignature)
-        }};
-
-        result
+        }}
     }
 }
