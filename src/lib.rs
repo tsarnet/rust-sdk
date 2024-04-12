@@ -240,7 +240,13 @@ impl Client {
             // Get system time
             let system_time = SystemTime::now();
 
-            if ntp_time.duration_since(system_time).unwrap().as_millis() > 100
+            let duration = if ntp_time > system_time {
+                ntp_time.duration_since(system_time).unwrap()
+            } else {
+                system_time.duration_since(ntp_time).unwrap()
+            };
+
+            if duration.as_millis() > 1000
                 || timestamp < system_time - Duration::from_secs(5)
             {
                 return Err(ValidateError::OldResponse);
