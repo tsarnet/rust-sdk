@@ -12,6 +12,7 @@ use p256::{
     pkcs8::DecodePublicKey,
 };
 use reqwest::StatusCode;
+use rsntp::SntpClient;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::{
@@ -59,6 +60,7 @@ pub struct Data {
     pub user: User,
     pub subscription: Subscription,
     pub timestamp: u64,
+    pub hwid: String,
 }
 
 /// User object which gets returned as part of `authenticate_user()` or `validate_user()`.
@@ -187,7 +189,8 @@ impl Client {
 
             if !response.status().is_success() {
                 match response.status() {
-                    StatusCode::NOT_FOUND => return Err(ValidateError::UserNotFound),
+                    StatusCode::NOT_FOUND => return Err(ValidateError::AppNotFound),
+                    StatusCode::UNAUTHORIZED => return Err(ValidateError::UserNotFound),
                     _ => return Err(ValidateError::ServerError),
                 }
             }
@@ -222,16 +225,27 @@ impl Client {
             let json: Data =
                 serde_json::from_str(&json_string).or(Err(ValidateError::FailedToParseData))?;
 
-            // Get the timestamp value
-            let timestamp = json.timestamp;
-
             dbo!();
 
-            // Verify that the timestamp is less than least 30 seconds old
-            let timestamp_system_time = UNIX_EPOCH + Duration::from_secs(timestamp / 1000);
-            let thirty_seconds_ago = SystemTime::now() - Duration::from_secs(30);
+            if hwid != json.hwid {
+                return Err(ValidateError::OldResponse);
+            }
 
-            if timestamp_system_time < thirty_seconds_ago {
+            // Get the timestamp value
+            let timestamp = UNIX_EPOCH + Duration::from_secs(json.timestamp / 1000);
+
+            // Get NTP time
+            let client = SntpClient::new();
+            let ntp_time = client.synchronize("time.cloudflare.com").unwrap().datetime()
+                .into_system_time()
+                .unwrap();
+
+            // Get system time
+            let system_time = SystemTime::now();
+
+            if ntp_time.duration_since(system_time).unwrap().as_millis() > 100
+                || timestamp < system_time - Duration::from_secs(5)
+            {
                 return Err(ValidateError::OldResponse);
             }
 

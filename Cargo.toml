@@ -1,6 +1,6 @@
 [package]
 name = "tsar-client"
-version = "0.0.3"
+version = "0.0.4"
 description = "Official wrapper for the TSAR Client API"
 repository = "https://github.com/tsar-sec/rust-wrapper"
 keywords = ["api", "framework", "windows", "macos", "linux"]
@@ -20,6 +20,7 @@ thiserror = "1.0.0"
 base64 = "0.22.0"
 p256 = { version = "0.13.2", features = ["ecdsa-core"] }
 hardware-id = "0.3.0"
+rsntp = "4.0.0"
 
 # Obfuscation
 debugoff = { version = '0.2.2', features = ['obfuscate', 'syscallobf'] }

@@ -24,6 +24,9 @@ pub enum ValidateError {
     #[error("Request to the TSAR server failed.")]
     RequestFailed,
     /// The HWID passed does not match to a user.
+    #[error("The APP ID does not match to an app.")]
+    AppNotFound,
+    /// The HWID passed does not match to a user.
     #[error("The HWID passed does not match to a user.")]
     UserNotFound,
     /// TSAR server had an error and did not return an OK status.
@@ -67,8 +70,8 @@ pub enum ValidateError {
     #[error("Failed to build signature using buffer.")]
     FailedToBuildSignature,
 
-    /// The response is older than 30 seconds. Data may have been tampered with.
-    #[error("The response is older than 30 seconds.")]
+    /// The response is old. Data may have been tampered with.
+    #[error("The response is old.")]
     OldResponse,
     /// Signature is not authentic. Data may have been tampered with.
     #[error("Signature is not authentic.")]
