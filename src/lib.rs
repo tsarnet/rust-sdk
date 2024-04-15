@@ -22,7 +22,6 @@ use std::{
     time::{Duration, Instant, SystemTime, UNIX_EPOCH},
 };
 
-// Debugoff
 #[cfg(all(target_os = "linux", not(debug_assertions)))]
 use debugoff;
 
@@ -256,8 +255,6 @@ impl Client {
             let signature_bytes = BASE64_STANDARD
                 .decode(base64_signature)
                 .or(Err(ValidateError::FailedToDecodeSignature))?;
-
-
 
             // Build signature from buffer
             let mut signature = Signature::from_bytes(signature_bytes[..].try_into().unwrap())
