@@ -1,6 +1,6 @@
 # TSAR Client API
 
-This is the official TSAR Client API wrapper for rust.
+This is the official TSAR Client SDK for rust.
 
 ## Example Import
 
@@ -13,10 +13,10 @@ tsar-client = "*"
 ```rs
 use tsar_client::Client;
 
-let api = Client::new(APP_ID, PUBLIC_KEY);
+let client = Client::new(APP_ID, PUBLIC_KEY).expect("Failed to initialize client");
 
-match api.authenticate_user() {
-    Ok(data) => println!("Success: {:?}", data), // Auth Success
-    Err(err) => println!("\x1b[31m[AUTH ERROR] {:?}\x1b[0m: {}", err, err), // Auth Failed
-}
+// If client formed successfully, then the user is authorized
+// Access user info using the client directly
+
+println!("Username: ", client.subscription.user.username);
 ```

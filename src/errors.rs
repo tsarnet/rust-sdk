@@ -1,14 +1,22 @@
 use thiserror::Error;
 
+/// Possible failure cases for [Client::new()].
+#[derive(Debug, Error)]
+pub enum InitError {
+    /// Failed to get the user's HWID.
+    #[error("Failed to get HWID.")]
+    FailedToGetHWID,
+
+    #[error(transparent)]
+    ValidateError(#[from] ValidateError),
+}
+
 /// Possible failure cases for [Client::authenticate_user()].
 #[derive(Debug, Error)]
 pub enum AuthError {
     /// Failed to open the user's default browser.
     #[error("Failed to open browser.")]
     FailedToOpenBrowser,
-    /// Failed to get the user's HWID.
-    #[error("Failed to get HWID.")]
-    FailedToGetHWID,
     /// User did not authenticate for over 10 minutes, client automatically timed out.
     #[error("User did not authenticate for over 10 minutes.")]
     Timeout,
@@ -17,7 +25,7 @@ pub enum AuthError {
     ValidateError(#[from] ValidateError),
 }
 
-/// Possible failure cases for [Client::validate_user()].
+/// Possible failure cases from communicating to the API
 #[derive(Debug, Error)]
 pub enum ValidateError {
     /// Request to the TSAR server failed, server may be down.
