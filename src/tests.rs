@@ -4,7 +4,7 @@ const CLIENT_KEY: &str = "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAELlyGTmNEv3Aarudysh
 const APP_ID: &str = "58816206-b24c-41d4-a594-8500746a78ee";
 
 #[test]
-fn create_client() {
+fn client_test() {
     let client = Client::new(APP_ID, CLIENT_KEY);
 
     match client {
