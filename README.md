@@ -1,6 +1,6 @@
 # TSAR Client API
 
-This is the official TSAR Client SDK for rust.
+The official Rust SDK for TSAR. Rust is our primary focus, so this SDK will be the most maintained.
 
 ## Example Import
 
@@ -13,10 +13,16 @@ tsar-client = "*"
 ```rs
 use tsar_client::Client;
 
-let client = Client::new(APP_ID, PUBLIC_KEY).expect("Failed to initialize client");
+// Get these credentials from: https://tsar.cc/app/any/settings
+const CLIENT_KEY: &str = "MFkwEwY...GAr/ITBqA==";
+const APP_ID: &str = "00000000-0000-0000-0000-000000000000";
 
-// If client formed successfully, then the user is authorized
-// Access user info using the client directly
+fn main() {
+    let client = Client::new(APP_ID, CLIENT_KEY).expect("Failed to initialize client");
 
-println!("Username: ", client.subscription.user.username);
+    // If client formed successfully, then the user is authorized
+    // Access user info directly from the client
+
+    println!("Username: ", client.subscription.user.username);
+}
 ```
