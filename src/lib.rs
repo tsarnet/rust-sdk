@@ -58,9 +58,9 @@ pub struct Client {
 #[derive(Debug)]
 pub struct ClientOptions {
     /// The ID of your TSAR app. Should be in UUID format: 00000000-0000-0000-0000-000000000000
-    pub app_id: &'static str,
+    pub app_id: String,
     /// The public decryption key for your TSAR app. Should be in base64 format.
-    pub client_key: &'static str,
+    pub client_key: String,
     /// Whether TSAR should print debug statements regarding auth.
     pub debug_print: bool,
 }
@@ -76,9 +76,9 @@ impl Client {
         }};
 
         let data = Self::authenticate(
-            options.app_id,
+            options.app_id.as_str(),
             hwid.as_str(),
-            options.client_key,
+            options.client_key.as_str(),
             options.debug_print,
         )
         .unwrap();
