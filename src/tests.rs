@@ -6,8 +6,8 @@ const APP_ID: &str = "58816206-b24c-41d4-a594-8500746a78ee";
 #[test]
 fn client_test() {
     let options = ClientOptions {
-        app_id: APP_ID,
-        client_key: CLIENT_KEY,
+        app_id: APP_ID.to_string(),
+        client_key: CLIENT_KEY.to_string(),
         debug_print: true,
     };
 

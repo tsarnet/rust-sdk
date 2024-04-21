@@ -19,8 +19,8 @@ const APP_ID: &str = "00000000-0000-0000-0000-000000000000";
 
 fn main() {
     let options = ClientOptions {
-        app_id: APP_ID,
-        client_key: CLIENT_KEY,
+        app_id: APP_ID.to_string(),
+        client_key: CLIENT_KEY.to_string(),
         debug_print: true,
     };
 
