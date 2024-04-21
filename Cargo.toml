@@ -1,6 +1,6 @@
 [package]
 name = "tsar-client"
-version = "0.0.6"
+version = "0.0.7"
 description = "Official Rust SDK for TSAR"
 repository = "https://github.com/tsar-sec/rust-sdk"
 keywords = ["api", "framework", "windows", "macos", "linux"]
@@ -20,6 +20,7 @@ serde = { version = "1", features = ['derive'] }
 serde_json = { version = "1" }
 hardware-id = "0.3.0"
 thiserror = "1.0.0"
+colorful = "0.2.2"
 goldberg = "0.1.0"
 base64 = "0.22.0"
 rsntp = "4.0.0"

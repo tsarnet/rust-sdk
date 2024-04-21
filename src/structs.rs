@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 /// Data returned by the server when fetching a subscription.
-#[derive(Default, Debug, Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub struct Data {
     pub subscription: Subscription,
     pub timestamp: u64,
@@ -10,7 +10,7 @@ pub struct Data {
 }
 
 /// Subscription object which gets returned as part of `authenticate_user()` or `validate_user()`.
-#[derive(Default, Debug, Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub struct Subscription {
     pub id: String,
     /// Timestamp of when the subscription expires
@@ -20,7 +20,7 @@ pub struct Subscription {
 }
 
 /// User object which gets returned as part of `authenticate_user()` or `validate_user()`.
-#[derive(Default, Debug, Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub struct User {
     pub id: String,
     pub username: Option<String>,

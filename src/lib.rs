@@ -7,6 +7,8 @@
 #![allow(non_camel_case_types)]
 
 use base64::prelude::*;
+use colorful::Color;
+use colorful::Colorful;
 #[cfg(all(target_os = "linux", not(debug_assertions)))]
 use debugoff;
 use errors::{AuthError, InitError, ValidateError};
@@ -20,10 +22,7 @@ use reqwest::StatusCode;
 use rsntp::SntpClient;
 use serde::de::DeserializeOwned;
 use serde_json::Value;
-use std::{
-    thread,
-    time::{Duration, Instant, SystemTime, UNIX_EPOCH},
-};
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use structs::{Data, Subscription};
 
 mod errors;
@@ -55,21 +54,38 @@ pub struct Client {
     pub subscription: Subscription,
 }
 
+/// The TSAR Client options struct. Used to form options and pass into the creation of the TSAR Client struct.
+#[derive(Debug)]
+pub struct ClientOptions {
+    /// The ID of your TSAR app. Should be in UUID format: 00000000-0000-0000-0000-000000000000
+    pub app_id: &'static str,
+    /// The public decryption key for your TSAR app. Should be in base64 format.
+    pub client_key: &'static str,
+    /// Whether TSAR should print debug statements regarding auth.
+    pub debug_print: bool,
+}
+
 /// The TSAR client.
 impl Client {
     /// Initializes a new TSAR client using an `app_id` and `client_key` variables.
-    pub fn new(app_id: &str, client_key: &str) -> Result<Self, InitError> {
+    pub fn new(options: ClientOptions) -> Result<Self, InitError> {
         dbo!();
 
         let hwid = goldberg_stmts! {{
              get_id().or(Err(InitError::FailedToGetHWID))?
         }};
 
-        let data = Self::authenticate(app_id, hwid.as_str(), client_key).unwrap();
+        let data = Self::authenticate(
+            options.app_id,
+            hwid.as_str(),
+            options.client_key,
+            options.debug_print,
+        )
+        .unwrap();
 
         Ok(Self {
-            app_id: app_id.to_string(),
-            client_key: client_key.to_string(),
+            app_id: options.app_id.to_string(),
+            client_key: options.client_key.to_string(),
             session: data.session,
             hwid,
             subscription: data.subscription,
@@ -78,17 +94,71 @@ impl Client {
 
     /// Starts an authentication flow which attempts to authenticate the user.
     /// If the user's HWID is not already authorized, the function opens the user's default browser to authenticate them.
-    pub fn authenticate(app_id: &str, hwid: &str, client_key: &str) -> Result<Data, AuthError> {
+    pub fn authenticate(
+        app_id: &str,
+        hwid: &str,
+        client_key: &str,
+        debug_print: bool,
+    ) -> Result<Data, AuthError> {
         dbo!();
+
+        if debug_print {
+            print!(
+                "{}",
+                "[TSAR] Authenticating...".gradient_with_color(Color::Cyan, Color::SpringGreen4)
+            );
+        }
 
         // Attempt to validate user
         match Self::validate_user(app_id, hwid, client_key) {
-            Ok(data) => return Ok(data),
+            Ok(data) => {
+                if debug_print {
+                    println!(
+                        "\r{}",
+                        "[TSAR] Authentication success."
+                            .gradient_with_color(Color::Cyan, Color::SpringGreen4)
+                    );
+
+                    let user = data
+                        .subscription
+                        .user
+                        .username
+                        .clone()
+                        .unwrap_or(data.subscription.user.id.clone());
+
+                    println!(
+                        "{} Welcome, {}.",
+                        "[TSAR]".gradient_with_color(Color::Cyan, Color::SpringGreen4),
+                        user.gradient_with_color(Color::SpringGreen4, Color::Cyan)
+                    );
+                }
+
+                return Ok(data);
+            }
 
             // Only continue execution if the user is not found, if any other part of the validate_user function fails then return an error
             Err(err) => match err {
-                ValidateError::UserNotFound => {}
-                _ => return Err(AuthError::ValidateError(err)),
+                ValidateError::UserNotFound => {
+                    if debug_print {
+                        println!(
+                            "\r{} If a browser window did not open, please visit {} to update your HWID.",
+                            "[TSAR] Authentication failed: HWID not authorized."
+                                .gradient_with_color(Color::Cyan, Color::SpringGreen4),
+                            format!("https://auth.tsar.cc/{}/{}", app_id, hwid).color(Color::Blue)
+                        );
+                    };
+                }
+                _ => {
+                    if debug_print {
+                        println!(
+                            "\r{} Please contact the software distributor for support.",
+                            format!("[TSAR] Authentication failed: {}", err.to_string())
+                                .gradient_with_color(Color::Cyan, Color::SpringGreen4)
+                        );
+                    }
+
+                    return Err(AuthError::ValidateError(err));
+                }
             },
         };
 
@@ -98,31 +168,7 @@ impl Client {
             }
         }};
 
-        // Start validation loop
-        let start_time = Instant::now();
-
-        loop {
-            dbo!();
-
-            goldberg_stmts! {{
-                // 5 second cooldown for the loop
-                thread::sleep(Duration::from_millis(5000));
-
-                // Return a Timeout error after 10 minutes of loop running.
-                if start_time.elapsed() >= Duration::from_secs(600) {
-                    return Err(AuthError::Timeout);
-                }
-            }};
-
-            // Attempt to validate user
-            match Self::validate_user(app_id, hwid, client_key) {
-                Ok(data) => return Ok(data),
-                Err(err) => match err {
-                    ValidateError::UserNotFound => {}
-                    _ => return Err(AuthError::ValidateError(err)),
-                },
-            };
-        }
+        Err(AuthError::Unauthorized)
     }
 
     /// Check if a HWID is authorized to use the application. Takes custom parameters.

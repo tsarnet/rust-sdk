@@ -18,11 +18,17 @@ const CLIENT_KEY: &str = "MFkwEwY...GAr/ITBqA==";
 const APP_ID: &str = "00000000-0000-0000-0000-000000000000";
 
 fn main() {
-    let client = Client::new(APP_ID, CLIENT_KEY).expect("Failed to initialize client");
+    let options = ClientOptions {
+        app_id: APP_ID,
+        client_key: CLIENT_KEY,
+        debug_print: true,
+    };
+
+    let client = Client::new(options).expect("Failed to initialize client.");
 
     // If client formed successfully, then the user is authorized
     // Access user info directly from the client
 
-    println!("Username: ", client.subscription.user.username);
+    println!("User ID: {}", client.subscription.user.id);
 }
 ```
