@@ -103,6 +103,10 @@ impl Client {
         dbo!();
 
         if debug_print {
+            #[cfg(windows)]
+            print!("[TSAR] Authenticating...");
+
+            #[cfg(not(windows))]
             print!(
                 "{}",
                 "[TSAR] Authenticating...".gradient_with_color(Color::Cyan, Color::SpringGreen4)
@@ -113,6 +117,10 @@ impl Client {
         match Self::validate_user(app_id, hwid, client_key) {
             Ok(data) => {
                 if debug_print {
+                    #[cfg(windows)]
+                    println!("\r[TSAR] Authentication success.");
+
+                    #[cfg(not(windows))]
                     println!(
                         "\r{}",
                         "[TSAR] Authentication success."
@@ -126,6 +134,10 @@ impl Client {
                         .clone()
                         .unwrap_or(data.subscription.user.id.clone());
 
+                    #[cfg(windows)]
+                    println!("[TSAR] Welcome, {}.", user);
+
+                    #[cfg(not(windows))]
                     println!(
                         "{} Welcome, {}.",
                         "[TSAR]".gradient_with_color(Color::Cyan, Color::SpringGreen4),
@@ -140,6 +152,10 @@ impl Client {
             Err(err) => match err {
                 ValidateError::UserNotFound => {
                     if debug_print {
+                        #[cfg(windows)]
+                        println!("\r[TSAR] Authentication failed: HWID not authorized. If a browser window did not open, please visit https://auth.tsar.cc/{}/{} to update your HWID.", app_id, hwid);
+
+                        #[cfg(not(windows))]
                         println!(
                             "\r{} If a browser window did not open, please visit {} to update your HWID.",
                             "[TSAR] Authentication failed: HWID not authorized."
@@ -150,6 +166,10 @@ impl Client {
                 }
                 _ => {
                     if debug_print {
+                        #[cfg(windows)]
+                        println!("\r[TSAR] Authentication failed: {} Please contact the software distributor for support.", err.to_string());
+
+                        #[cfg(not(windows))]
                         println!(
                             "\r{} Please contact the software distributor for support.",
                             format!("[TSAR] Authentication failed: {}", err.to_string())
