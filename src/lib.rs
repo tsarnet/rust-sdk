@@ -289,7 +289,7 @@ impl Client {
             // Get the timestamp value
             let timestamp = match json.get("timestamp").and_then(|ts| ts.as_u64()) {
                 Some(ts_secs) => {
-                    let duration_secs = Duration::from_secs(ts_secs / 1000);
+                    let duration_secs = Duration::from_secs(ts_secs);
                     UNIX_EPOCH.checked_add(duration_secs).ok_or(ValidateError::FailedToParseData)?
                 }
                 None => return Err(ValidateError::FailedToParseData),
