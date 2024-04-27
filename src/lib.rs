@@ -28,7 +28,7 @@ use structs::{Data, Subscription};
 mod errors;
 mod structs;
 
-#[cfg(test)] // cargo test -- --nocapture
+#[cfg(test)]
 mod tests;
 
 // Anti-debug macro
