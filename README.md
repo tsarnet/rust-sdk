@@ -13,7 +13,7 @@ tsar-client = "0.0.8"
 ```rs
 use tsar_client::Client;
 
-// Get these credentials from: https://tsar.cc/app/any/settings
+// Get these credentials from: https://tsar.cc/app/*/settings
 const CLIENT_KEY: &str = "MFkwEwY...GAr/ITBqA==";
 const APP_ID: &str = "00000000-0000-0000-0000-000000000000";
 
