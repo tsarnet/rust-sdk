@@ -310,8 +310,8 @@ impl Client {
                 system_time.duration_since(ntp_time).unwrap()
             };
 
-            if duration.as_millis() > 1000
-                || timestamp < system_time - Duration::from_secs(5)
+            if duration.as_millis() > 5000
+                || timestamp < (system_time - Duration::from_secs(5))
             {
                 return Err(ValidateError::OldResponse);
             }
