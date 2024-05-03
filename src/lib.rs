@@ -263,6 +263,7 @@ impl Client {
                 .decode(base64_data)
                 .or(Err(ValidateError::FailedToDecodeData))?;
 
+
             // Get json string
             let json_string =
                 String::from_utf8(data_bytes.clone()).or(Err(ValidateError::FailedToParseData))?;
@@ -290,9 +291,9 @@ impl Client {
             let timestamp = match json.get("timestamp").and_then(|ts| ts.as_u64()) {
                 Some(ts_secs) => {
                     let duration_secs = Duration::from_secs(ts_secs);
-                    UNIX_EPOCH.checked_add(duration_secs).ok_or(ValidateError::FailedToParseData)?
+                    UNIX_EPOCH.checked_add(duration_secs).ok_or(ValidateError::FailedToGetTimestamp)?
                 }
-                None => return Err(ValidateError::FailedToParseData),
+                None => return Err(ValidateError::FailedToGetTimestamp),
             };
 
             // Get NTP time
