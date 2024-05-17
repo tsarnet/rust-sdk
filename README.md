@@ -7,7 +7,7 @@ The official Rust SDK for TSAR. Rust is our primary focus, so this SDK will be t
 ## Example Import
 
 ```toml
-tsar-client = "0.1.0-alpha.0"
+tsar-client = "0.1.0-alpha.1"
 ```
 
 ## Example Usage
