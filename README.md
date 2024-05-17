@@ -1,11 +1,13 @@
-# TSAR Client API
+# TSAR Rust SDK
 
 The official Rust SDK for TSAR. Rust is our primary focus, so this SDK will be the most maintained.
+
+![banner](/banner.png)
 
 ## Example Import
 
 ```toml
-tsar-client = "0.0.8"
+tsar-client = "0.1.0-alpha.0"
 ```
 
 ## Example Usage
@@ -32,3 +34,11 @@ fn main() {
     println!("User ID: {}", client.subscription.user.id);
 }
 ```
+
+## Want to contribute?
+
+This SDK is open for community contribution! All pull requests will be reviewed by our team.
+
+## Need help?
+
+Join our [discord community](https://discord.com/invite/JReXjQCVPw) if you have any questions. For other contact options, please [visit here](https://tsar.cc/about/social).
