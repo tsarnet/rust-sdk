@@ -249,7 +249,7 @@ impl Client {
         if let Some(hwid_value) = json.get("hwid") {
             if let Some(hwid_str) = hwid_value.as_str() {
                 if hwid != hwid_str {
-                    return Err(ValidateError::OldResponse);
+                    return Err(ValidateError::HWIDMismatch);
                 }
             } else {
                 return Err(ValidateError::FailedToParseData);

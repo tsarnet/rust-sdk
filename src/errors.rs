@@ -78,6 +78,9 @@ pub enum ValidateError {
     #[error("Failed to build signature using buffer.")]
     FailedToBuildSignature,
 
+    /// Local HWID and HWID returned from server dont match.
+    #[error("Local HWID and HWID returned from server dont match.")]
+    HWIDMismatch,
     /// The response is old. Data may have been tampered with.
     #[error("Response is old.")]
     OldResponse,
