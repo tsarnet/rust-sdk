@@ -192,7 +192,7 @@ impl Client {
         .or(Err(ValidateError::RequestFailed))?;
 
         if response.status().is_success() {
-            return Ok(());
+            Ok(())
         } else {
             Err(ValidateError::InvalidSession)
         }
