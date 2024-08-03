@@ -183,6 +183,21 @@ impl Client {
         Self::custom_query::<Data>(url.as_str(), client_key, hwid)
     }
 
+    /// Validate that a user session is still valid
+    pub fn validate_session(&self) -> Result<(), ValidateError> {
+        let response = reqwest::blocking::get(format!(
+            "https://tsar.cc/api/client/session/validate?app={}&session={}",
+            self.app_id, self.session
+        ))
+        .or(Err(ValidateError::RequestFailed))?;
+
+        if response.status().is_success() {
+            return Ok(());
+        } else {
+            Err(ValidateError::InvalidSession)
+        }
+    }
+
     /// Query an endpoint from the TSAR API.
     pub fn query<T: DeserializeOwned>(&self, path: &str) -> Result<T, ValidateError> {
         Self::custom_query(path, &self.client_key, &self.hwid)

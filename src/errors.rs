@@ -87,4 +87,8 @@ pub enum ValidateError {
     /// Signature is not authentic. Data may have been tampered with.
     #[error("Signature is not authentic.")]
     InvalidSignature,
+
+    /// Session was not found, therefore it is not valid.
+    #[error("Session is no longer valid.")]
+    InvalidSession,
 }
