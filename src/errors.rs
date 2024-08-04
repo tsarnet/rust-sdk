@@ -34,6 +34,9 @@ pub enum ValidateError {
     /// The APP ID passed does not match to a TSAR APP.
     #[error("App ID not found.")]
     AppNotFound,
+    /// The APP you're trying to use is paused by the developer.
+    #[error("App was paused by the developer.")]
+    AppPaused,
     /// The HWID passed does not match to a user.
     #[error("HWID does not match to user.")]
     UserNotFound,

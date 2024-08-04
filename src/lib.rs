@@ -17,7 +17,7 @@ use rsntp::SntpClient;
 use serde::de::DeserializeOwned;
 use serde_json::Value;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
-use structs::{Data, Subscription};
+use structs::{InitData, Subscription, ValidateData};
 
 mod errors;
 mod structs;
@@ -54,10 +54,10 @@ pub struct ClientOptions {
 /// The TSAR client.
 impl Client {
     /// Initializes a new TSAR client using `app_id` and `client_key` variables.
-    pub fn new(options: ClientOptions) -> Result<Self, InitError> {
+    pub fn init(options: ClientOptions) -> Result<Self, InitError> {
         let hwid = get_id().or(Err(InitError::FailedToGetHWID))?;
 
-        let data = Self::authenticate(
+        let data = Self::initialize(
             options.app_id.as_str(),
             hwid.as_str(),
             options.client_key.as_str(),
@@ -76,12 +76,12 @@ impl Client {
 
     /// Starts an authentication flow which attempts to authenticate the user.
     /// If the user's HWID is not already authorized, the function opens the user's default browser to authenticate them.
-    pub fn authenticate(
+    fn initialize(
         app_id: &str,
         hwid: &str,
         client_key: &str,
         debug_print: bool,
-    ) -> Result<Data, AuthError> {
+    ) -> Result<InitData, AuthError> {
         if debug_print {
             #[cfg(windows)]
             print!("[TSAR] Authenticating...");
@@ -93,8 +93,15 @@ impl Client {
             );
         }
 
+        let url = format!(
+            "https://tsar.cc/api/client/initialize?app={}&hwid={}",
+            app_id, hwid
+        );
+
+        let init_result = Self::custom_query::<InitData>(url.as_str(), client_key, hwid);
+
         // Attempt to validate user
-        match Self::validate_user(app_id, hwid, client_key) {
+        match init_result {
             Ok(data) => {
                 if debug_print {
                     #[cfg(windows)]
@@ -169,42 +176,23 @@ impl Client {
         Err(AuthError::Unauthorized)
     }
 
-    /// Check if a HWID is authorized to use the application. Takes custom parameters.
-    pub fn validate_user(
-        app_id: &str,
-        hwid: &str,
-        client_key: &str,
-    ) -> Result<Data, ValidateError> {
+    /// Validate that a user session is still valid
+    pub fn validate(&self) -> Result<ValidateData, ValidateError> {
         let url = format!(
-            "https://tsar.cc/api/client/subscriptions/get?app={}&hwid={}",
-            app_id, hwid
+            "https://tsar.cc/api/client/validate?app={}&hwid={}&session={}",
+            self.app_id, self.hwid, self.session
         );
 
-        Self::custom_query::<Data>(url.as_str(), client_key, hwid)
-    }
-
-    /// Validate that a user session is still valid
-    pub fn validate_session(&self) -> Result<(), ValidateError> {
-        let response = reqwest::blocking::get(format!(
-            "https://tsar.cc/api/client/session/validate?app={}&session={}",
-            self.app_id, self.session
-        ))
-        .or(Err(ValidateError::RequestFailed))?;
-
-        if response.status().is_success() {
-            Ok(())
-        } else {
-            Err(ValidateError::InvalidSession)
-        }
+        Self::query::<ValidateData>(&self, url.as_str())
     }
 
     /// Query an endpoint from the TSAR API.
-    pub fn query<T: DeserializeOwned>(&self, path: &str) -> Result<T, ValidateError> {
+    fn query<T: DeserializeOwned>(&self, path: &str) -> Result<T, ValidateError> {
         Self::custom_query(path, &self.client_key, &self.hwid)
     }
 
     /// Query an endpoint from the TSAR API, but with custom parameters.
-    pub fn custom_query<T: DeserializeOwned>(
+    fn custom_query<T: DeserializeOwned>(
         path: &str,
         client_key: &str,
         hwid: &str,
@@ -226,6 +214,7 @@ impl Client {
             match response.status() {
                 StatusCode::NOT_FOUND => return Err(ValidateError::AppNotFound),
                 StatusCode::UNAUTHORIZED => return Err(ValidateError::UserNotFound),
+                StatusCode::SERVICE_UNAVAILABLE => return Err(ValidateError::AppPaused),
                 _ => return Err(ValidateError::ServerError),
             }
         }

@@ -1,7 +1,7 @@
 use crate::{Client, ClientOptions};
 
-const CLIENT_KEY: &str = "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAELlyGTmNEv3AarudyshJUUA9ig1pOfSl5qWX8g/hkPiieeKlWvv9o4IZmWI4cCrcR0fteVEcUhBvu5GAr/ITBqA==";
-const APP_ID: &str = "58816206-b24c-41d4-a594-8500746a78ee";
+const CLIENT_KEY: &str = "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEvJrwPvdeDUcV8Qr02tzgFrp+8qfCV/vG1HcQJYYV8u5vYUfGABMAYT0qOQltXEX9DTcB2fzLfwQnl7yiAaNruQ==";
+const APP_ID: &str = "f911842b-5b3d-4c59-b5d1-4adb8f71557b";
 
 #[test]
 fn client_test() {
@@ -11,13 +11,26 @@ fn client_test() {
         debug_print: true,
     };
 
-    let client = Client::new(options);
+    let client_init = Client::init(options);
 
-    match client {
-        Ok(data) => {
-            println!("\x1b[32m[TEST SUCCESS] Data\x1b[0m: {:?}", data);
+    match client_init {
+        Ok(client) => {
+            println!(
+                "\x1b[32m[INIT SUCCESS] Username\x1b[0m: {:?}",
+                client.subscription.user.username
+            );
+
+            match client.validate() {
+                Ok(data) => {
+                    println!("\x1b[32m[HEARTBEAT SUCCESS] Valid?\x1b[0m: {}", data.valid);
+                }
+                Err(err) => println!(
+                    "\x1b[31m[HEARTBEAT ERROR] Failed heartbeat check: {:?}\x1b[0m: {}",
+                    err, err
+                ),
+            }
         }
-        Err(err) => println!("\x1b[31m[TEST ERROR] {:?}\x1b[0m: {}", err, err),
+        Err(err) => println!("\x1b[31m[INIT ERROR] {:?}\x1b[0m: {}", err, err),
     }
 
     assert!(true);

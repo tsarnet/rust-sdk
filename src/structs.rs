@@ -1,8 +1,8 @@
 use serde::{Deserialize, Serialize};
 
-/// Data returned by the server when fetching a subscription.
+/// Data returned by the server when initializing.
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
-pub struct Data {
+pub struct InitData {
     pub subscription: Subscription,
     pub timestamp: u64,
     pub hwid: String,
@@ -14,7 +14,7 @@ pub struct Data {
 pub struct Subscription {
     pub id: String,
     /// Timestamp of when the subscription expires
-    pub expires: Option<i64>,
+    pub expires: Option<u64>,
     /// The user which owns the subscription.
     pub user: User,
 }
@@ -25,4 +25,12 @@ pub struct User {
     pub id: String,
     pub username: Option<String>,
     pub avatar: Option<String>,
+}
+
+/// Data returned by the server when validating a client session.
+#[derive(Default, Debug, Clone, Serialize, Deserialize)]
+pub struct ValidateData {
+    pub valid: bool,
+    pub hwid: String,
+    pub timestamp: u64,
 }
