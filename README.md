@@ -7,7 +7,7 @@ The official Rust SDK for TSAR. Rust is our primary focus, so this SDK will be t
 ## Example Import
 
 ```toml
-tsar-client = "0.1.0-alpha.4"
+tsar-client = "0.1.0-alpha.5"
 ```
 
 ## Example Usage
@@ -24,14 +24,21 @@ fn main() {
         app_id: APP_ID.to_string(),
         client_key: CLIENT_KEY.to_string(),
         debug_print: true,
+        dashboard_hostname: None,
     };
 
-    let client = Client::new(options).expect("Failed to initialize client.");
+    // Initialize the client
+    let client = Client::init(options).expect("Authentication failed.");
 
     // If client formed successfully, then the user is authorized
     // Access user info directly from the client
 
     println!("User ID: {}", client.subscription.user.id);
+
+    // Perform a heart-beat check to validate that the user session is still valid
+    if client.validate().expect("Session validation failed.").valid {
+      // Client session is still valid
+    }
 }
 ```
 

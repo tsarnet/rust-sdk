@@ -9,6 +9,7 @@ fn client_test() {
         app_id: APP_ID.to_string(),
         client_key: CLIENT_KEY.to_string(),
         debug_print: true,
+        dashboard_hostname: Some("test.com".to_string()),
     };
 
     let client_init = Client::init(options);
