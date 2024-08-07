@@ -30,7 +30,6 @@ pub struct User {
 /// Data returned by the server when validating a client session.
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub struct ValidateData {
-    pub valid: bool,
     pub hwid: String,
     pub timestamp: u64,
 }

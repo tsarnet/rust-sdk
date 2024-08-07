@@ -21,14 +21,17 @@ fn client_test() {
                 client.subscription.user.username
             );
 
-            match client.validate() {
-                Ok(data) => {
-                    println!("\x1b[32m[HEARTBEAT SUCCESS] Valid?\x1b[0m: {}", data.valid);
+            loop {
+                std::thread::sleep(std::time::Duration::from_secs(5));
+                match client.validate() {
+                    Ok(_) => {
+                        println!("\x1b[32m[HEARTBEAT SUCCESS] Valid?\x1b[0m");
+                    }
+                    Err(err) => println!(
+                        "\x1b[31m[HEARTBEAT ERROR] Failed heartbeat check: {:?}\x1b[0m: {}",
+                        err, err
+                    ),
                 }
-                Err(err) => println!(
-                    "\x1b[31m[HEARTBEAT ERROR] Failed heartbeat check: {:?}\x1b[0m: {}",
-                    err, err
-                ),
             }
         }
         Err(err) => println!("\x1b[31m[INIT ERROR] {:?}\x1b[0m: {}", err, err),

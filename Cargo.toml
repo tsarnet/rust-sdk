@@ -1,6 +1,6 @@
 [package]
 name = "tsar-client"
-version = "0.1.0-alpha.5"
+version = "0.1.0-alpha.6"
 description = "Official Rust SDK for TSAR"
 repository = "https://github.com/tsar-sec/rust-sdk"
 keywords = ["api", "framework", "windows", "macos", "linux"]

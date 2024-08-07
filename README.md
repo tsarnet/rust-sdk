@@ -7,7 +7,7 @@ The official Rust SDK for TSAR. Rust is our primary focus, so this SDK will be t
 ## Example Import
 
 ```toml
-tsar-client = "0.1.0-alpha.5"
+tsar-client = "0.1.0-alpha.6"
 ```
 
 ## Example Usage
@@ -36,8 +36,8 @@ fn main() {
     println!("User ID: {}", client.subscription.user.id);
 
     // Perform a heart-beat check to validate that the user session is still valid
-    if client.validate().expect("Session validation failed.").valid {
-      // Client session is still valid
+    if client.validate().is_err() {
+      // Client session is no longer valid
     }
 }
 ```
