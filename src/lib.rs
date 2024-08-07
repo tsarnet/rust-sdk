@@ -49,6 +49,10 @@ pub struct ClientOptions {
     pub client_key: String,
     /// Whether TSAR should print debug statements regarding auth.
     pub debug_print: bool,
+    /// Replace `<app_id>.tsar.app` with a custom hostname. You can use your vanity (vanity.tsar.app) or a custom domain.
+    /// Make sure that your custom domain is registered in your app's settings through the management dashboard.
+    /// Only assign hostnames to this variable. Do not include `https://` or route info. Examples: `website.com`, `dash.website.com`, `my.custom.site`
+    pub dashboard_hostname: Option<String>,
 }
 
 /// The TSAR client.
@@ -57,11 +61,16 @@ impl Client {
     pub fn init(options: ClientOptions) -> Result<Self, InitError> {
         let hwid = get_id().or(Err(InitError::FailedToGetHWID))?;
 
+        let hostname = options
+            .dashboard_hostname
+            .unwrap_or_else(|| format!("{}.tsar.app", options.app_id));
+
         let data = Self::initialize(
             options.app_id.as_str(),
             hwid.as_str(),
             options.client_key.as_str(),
             options.debug_print,
+            &hostname,
         )
         .unwrap();
 
@@ -81,6 +90,7 @@ impl Client {
         hwid: &str,
         client_key: &str,
         debug_print: bool,
+        dashboard_hostname: &str,
     ) -> Result<InitData, AuthError> {
         if debug_print {
             #[cfg(windows)]
@@ -140,14 +150,14 @@ impl Client {
                 ValidateError::UserNotFound => {
                     if debug_print {
                         #[cfg(windows)]
-                        println!("\r[TSAR] Authentication failed: HWID not authorized. If a browser window did not open, please visit https://auth.tsar.cc/{}/{} to update your HWID.", app_id, hwid);
+                        println!("\r[TSAR] Authentication failed: HWID not authorized. If a browser window did not open, please visit https://{}/auth/{} to update your HWID.", dashboard_hostname, hwid);
 
                         #[cfg(not(windows))]
                         println!(
                             "\r{} If a browser window did not open, please visit {} to update your HWID.",
                             "[TSAR] Authentication failed: HWID not authorized."
                                 .gradient_with_color(Color::Cyan, Color::SpringGreen4),
-                            format!("https://auth.tsar.cc/{}/{}", app_id, hwid).color(Color::Blue)
+                            format!("https://{}/auth/{}", dashboard_hostname, hwid).color(Color::Blue)
                         );
                     };
                 }
@@ -169,7 +179,7 @@ impl Client {
             },
         };
 
-        if let Err(_) = open::that(format!("https://tsar.cc/auth/{}/{}", app_id, hwid)) {
+        if let Err(_) = open::that(format!("https://{}/auth/{}", dashboard_hostname, hwid)) {
             return Err(AuthError::FailedToOpenBrowser);
         }
 
