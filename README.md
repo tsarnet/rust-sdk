@@ -7,7 +7,7 @@ The official Rust SDK for TSAR. Rust is our primary focus, so this SDK will be t
 ## Example Import
 
 ```toml
-tsar-client = "0.1.0-alpha.6"
+tsar-client = "0.1.0-alpha.7"
 ```
 
 ## Example Usage
@@ -34,6 +34,12 @@ fn main() {
     // Access user info directly from the client
 
     println!("User ID: {}", client.subscription.user.id);
+
+    // All subscriptions have "tiers" which can be set through key options. Default tier is 0.
+
+    if client.subscription.tier >= 3 {
+      println!("Woah you're special.");
+    }
 
     // Perform a heart-beat check to validate that the user session is still valid
     if client.validate().is_err() {

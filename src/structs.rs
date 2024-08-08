@@ -17,6 +17,8 @@ pub struct Subscription {
     pub expires: Option<u64>,
     /// The user which owns the subscription.
     pub user: User,
+    /// The tier of the user's subscription, set by the app's purchase flow. Default is 0.
+    pub tier: u32,
 }
 
 /// User object which gets returned as part of `authenticate_user()` or `validate_user()`.
