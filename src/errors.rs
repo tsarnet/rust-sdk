@@ -46,6 +46,9 @@ pub enum ValidateError {
     /// The request passed to the TSAR server was bad.
     #[error("The request passed to the TSAR server was bad.")]
     BadRequest,
+    /// You have been rate limited.
+    #[error("You have been rate limited.")]
+    RateLimited,
     /// Failed to parse returned body into JSON.
     #[error("Failed to parse returned body into JSON.")]
     FailedToParseBody,

@@ -225,6 +225,7 @@ impl Client {
                 StatusCode::BAD_REQUEST => return Err(ValidateError::BadRequest),
                 StatusCode::NOT_FOUND => return Err(ValidateError::AppNotFound),
                 StatusCode::UNAUTHORIZED => return Err(ValidateError::UserNotFound),
+                StatusCode::TOO_MANY_REQUESTS => return Err(ValidateError::RateLimited),
                 StatusCode::SERVICE_UNAVAILABLE => return Err(ValidateError::AppPaused),
                 _ => return Err(ValidateError::ServerError),
             }
