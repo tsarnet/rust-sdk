@@ -43,6 +43,9 @@ pub enum ValidateError {
     /// TSAR server had an error and did not return an OK status.
     #[error("TSAR server did not return OK.")]
     ServerError,
+    /// The request passed to the TSAR server was bad.
+    #[error("The request passed to the TSAR server was bad.")]
+    BadRequest,
     /// Failed to parse returned body into JSON.
     #[error("Failed to parse returned body into JSON.")]
     FailedToParseBody,

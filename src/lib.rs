@@ -222,6 +222,7 @@ impl Client {
 
         if !response.status().is_success() {
             match response.status() {
+                StatusCode::BAD_REQUEST => return Err(ValidateError::BadRequest),
                 StatusCode::NOT_FOUND => return Err(ValidateError::AppNotFound),
                 StatusCode::UNAUTHORIZED => return Err(ValidateError::UserNotFound),
                 StatusCode::SERVICE_UNAVAILABLE => return Err(ValidateError::AppPaused),
