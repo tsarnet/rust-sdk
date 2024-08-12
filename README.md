@@ -6,45 +6,53 @@ The official Rust SDK for TSAR. Rust is our primary focus, so this SDK will be t
 
 ## Example Import
 
-```toml
-tsar-client = "0.1.0-alpha.7"
+```toml Cargo.toml
+tsar-sdk = "0.1.0-beta.0"
 ```
 
 ## Example Usage
 
-```rs
-use tsar_client::Client;
+```rs main.rs
+use tsar_sdk::{Client, ClientOptions};
 
-// Get these credentials from: https://tsar.cc/app/*/settings
-const CLIENT_KEY: &str = "MFkwEwY...GAr/ITBqA==";
+// You should have gotten these values after creating your app
+// You can find them in your app's configuration settings
+const CLIENT_KEY: &str = "MFk...";
 const APP_ID: &str = "00000000-0000-0000-0000-000000000000";
 
 fn main() {
-    let options = ClientOptions {
-        app_id: APP_ID.to_string(),
-        client_key: CLIENT_KEY.to_string(),
-        debug_print: true,
-        dashboard_hostname: None,
-    };
+  let options = ClientOptions {
+      app_id: APP_ID.to_string(),
+      client_key: CLIENT_KEY.to_string(),
+      debug: true, // Print out debug statements
+  };
 
-    // Initialize the client
-    let client = Client::init(options).expect("Authentication failed.");
+  // This will create a new client & perform a hash check on your binary (if enabled)
+  let client_init = Client::new(options);
 
-    // If client formed successfully, then the user is authorized
-    // Access user info directly from the client
+  match client_init {
+      Ok(client) => {
+          println!("Client initialized!");
 
-    println!("User ID: {}", client.subscription.user.id);
+          // Attempt to authenticate user
+          match client.authenticate() {
+              Ok(user) => {
+                  println!("Successfully authenticated. User ID: {}", user.id);
 
-    // All subscriptions have "tiers" which can be set through key options. Default tier is 0.
-
-    if client.subscription.tier >= 3 {
-      println!("Woah you're special.");
-    }
-
-    // Perform a heart-beat check to validate that the user session is still valid
-    if client.validate().is_err() {
-      // Client session is no longer valid
-    }
+                  // Start a heartbeat check loop
+                  loop {
+                      match user.heartbeat() {
+                          Ok(_) => println!("Heartbeat OK."),
+                          Err(err) => println!("Heartbeat failed: {:?}: {}", err, err),
+                      }
+                      std::thread::sleep(std::time::Duration::from_secs(30));
+                  }
+              }
+              Err(err) => println!("Failed to authenticate: {:?}: {}", err, err),
+          }
+      }
+      Err(err) => println!("Failed to initialize client: {:?}: {}", err, err),
+  }
 }
 ```
 
@@ -54,4 +62,4 @@ This SDK is open for community contribution! All pull requests will be reviewed 
 
 ## Need help?
 
-Join our [discord community](https://discord.com/invite/JReXjQCVPw) if you have any questions. For other contact options, please [visit here](https://tsar.cc/about/social).
+Join our [discord community](https://tsar.cc/discord) if you have any questions. For other contact options, please [visit here](https://tsar.cc/about/social).

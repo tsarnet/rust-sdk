@@ -1,6 +1,6 @@
 [package]
-name = "tsar-client"
-version = "0.1.0-alpha.8"
+name = "tsar-sdk"
+version = "0.1.0-beta.0"
 description = "Official Rust SDK for TSAR"
 repository = "https://github.com/tsar-sec/rust-sdk"
 keywords = ["api", "framework", "windows", "macos", "linux"]
@@ -23,14 +23,3 @@ colorful = "0.2.2"
 base64 = "0.22.0"
 rsntp = "4.0.0"
 open = "5.0.0"
-
-
-# Anti-debug Release
-[profile.release]
-stack-protector = true
-strip = "symbols"
-panic = "abort"
-opt-level = 3
-debug = false
-lto = true
-cfi = true

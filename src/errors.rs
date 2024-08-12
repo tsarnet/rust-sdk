@@ -1,103 +1,62 @@
 use thiserror::Error;
 
-/// Possible failure cases for [Client::new()].
+/// TSAR Errors.
 #[derive(Debug, Error)]
-pub enum InitError {
+pub enum TsarError {
+    /// The App ID provided is not in the right format. Must be in UUID (00000000-0000-0000-0000-000000000000) format.
+    #[error("Invalid App ID format. Must be in UUID format.")]
+    InvalidAppId,
+    /// The Client Key provided is not in the right format. Must be in Base64 (MFk...qA==) format.
+    #[error("Invalid Client Key format. Must be in Base64 format.")]
+    InvalidClientKey,
+
     /// Failed to get the user's HWID.
     #[error("Failed to get HWID.")]
     FailedToGetHWID,
 
-    #[error(transparent)]
-    ValidateError(#[from] ValidateError),
-}
+    /// A public key is invalid.
+    #[error("Invalid public key. Make sure that your key starts with \"MFk...\".")]
+    InvalidPublicKey,
 
-/// Possible failure cases for [Client::authenticate_user()].
-#[derive(Debug, Error)]
-pub enum AuthError {
-    /// Failed to open the user's default browser.
-    #[error("Failed to open browser.")]
-    FailedToOpenBrowser,
-    /// User is not authorized to use the application.
-    #[error("User is not authorized to use the application.")]
-    Unauthorized,
-
-    #[error(transparent)]
-    ValidateError(#[from] ValidateError),
-}
-
-/// Possible failure cases from communicating to the API
-#[derive(Debug, Error)]
-pub enum ValidateError {
-    /// Request to the TSAR server failed, server may be down.
-    #[error("Request to TSAR server failed.")]
+    /// Failed to send a request to the TSAR API.
+    #[error("Failed to send a request to the TSAR API.")]
     RequestFailed,
-    /// The APP ID passed does not match to a TSAR APP.
-    #[error("App ID not found.")]
-    AppNotFound,
-    /// The APP you're trying to use is paused by the developer.
-    #[error("App was paused by the developer.")]
-    AppPaused,
-    /// The HWID passed does not match to a user.
-    #[error("HWID does not match to user.")]
-    UserNotFound,
-    /// TSAR server had an error and did not return an OK status.
-    #[error("TSAR server did not return OK.")]
-    ServerError,
-    /// The request passed to the TSAR server was bad.
-    #[error("The request passed to the TSAR server was bad.")]
+
+    /// Failed to decode TSAR API response.
+    #[error("Failed to decode TSAR API response.")]
+    FailedToDecode,
+
+    /// Data returned from TSAR API does not match local data.
+    #[error("Data returned from TSAR API does not match local data.")]
+    StateMismatch,
+
+    /// The API response has been tampered with.
+    #[error("The API response has been tampered with.")]
+    TamperedResponse,
+
+    // API response error cases
+    /// The TSAR API returned a 400: Bad Request status code.
+    /// This means that the parameters passed to the endpoint were not correct.
+    #[error("Bad request.")]
     BadRequest,
-    /// You have been rate limited.
-    #[error("You have been rate limited.")]
+    /// The TSAR API returned a 404: Not Found status code.
+    /// This means that the API failed to find a resource.
+    #[error("App not found.")]
+    AppNotFound,
+    /// The TSAR API returned a 401: Unauthorized status code.
+    /// This means that the user's HWID did not match to a subscription object.
+    #[error("Your HWID is not authorized.")]
+    Unauthorized,
+    /// The TSAR API returned a 429: Too Many Requests status code.
+    /// This means that you're sending requests too fast.
+    #[error("You are being rate limited.")]
     RateLimited,
-    /// Failed to parse returned body into JSON.
-    #[error("Failed to parse returned body into JSON.")]
-    FailedToParseBody,
-
-    /// Failed to get the `data` field from the parsed JSON body.
-    #[error("Failed to get data field from parsed JSON body.")]
-    FailedToGetData,
-    /// Failed to get the `signature` field from the parsed JSON body.
-    #[error("Failed to get signature field from parsed JSON body.")]
-    FailedToGetSignature,
-
-    /// Failed to decode the `data` field from the parsed JSON body.
-    #[error("Failed to decode data field from parsed JSON body.")]
-    FailedToDecodeData,
-    /// Failed to decode the `signature` field from the parsed JSON body.
-    #[error("Failed to decode signature field from parsed JSON body.")]
-    FailedToDecodeSignature,
-    /// Failed to decode the client key from base64.
-    #[error("Failed to decode client key from base64.")]
-    FailedToDecodePubKey,
-
-    /// Failed to parse the `data` field into JSON.
-    #[error("Failed to parse data field into JSON.")]
-    FailedToParseData,
-    /// Failed to get the `timestamp` field.
-    #[error("Failed to get timestamp field.")]
-    FailedToGetTimestamp,
-    /// Failed to parse the `timestamp` field into u64.
-    #[error("Failed to parse timestamp field into u64.")]
-    FailedToParseTimestamp,
-
-    /// Failed to build the verification key using der.
-    #[error("Failed to build verification key using der.")]
-    FailedToBuildKey,
-    /// Failed to build signature using buffer.
-    #[error("Failed to build signature using buffer.")]
-    FailedToBuildSignature,
-
-    /// Local HWID and HWID returned from server dont match.
-    #[error("Local HWID and HWID returned from server dont match.")]
-    HWIDMismatch,
-    /// The response is old. Data may have been tampered with.
-    #[error("Response is old.")]
-    OldResponse,
-    /// Signature is not authentic. Data may have been tampered with.
-    #[error("Signature is not authentic.")]
-    InvalidSignature,
-
-    /// Session was not found, therefore it is not valid.
-    #[error("Session is no longer valid.")]
-    InvalidSession,
+    /// The TSAR API returned a 503: Service Unavailable status code.
+    /// This means that the app is paused.
+    #[error("The app is paused.")]
+    AppPaused,
+    /// The TSAR API returned a server error.
+    /// This is a catch-all for unusual error cases.
+    #[error("Server error.")]
+    ServerError,
 }
