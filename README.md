@@ -27,7 +27,7 @@ fn main() {
       debug: true, // Print out debug statements
   };
 
-  // This will create a new client & perform a hash check on your binary (if enabled)
+  // This will create a new client & perform a hash check on your binary
   let client_init = Client::new(options);
 
   // Check if client init was successful

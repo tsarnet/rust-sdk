@@ -34,7 +34,6 @@ pub enum TsarError {
     #[error("The API response has been tampered with.")]
     TamperedResponse,
 
-    // API response error cases
     /// The TSAR API returned a 400: Bad Request status code.
     /// This means that the parameters passed to the endpoint were not correct.
     #[error("Bad request.")]

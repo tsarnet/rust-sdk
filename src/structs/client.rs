@@ -276,7 +276,7 @@ impl Client {
         let mut params_with_hwid = params.to_vec();
         params_with_hwid.push(("hwid", &hwid));
 
-        // Send the request
+        // Send the request (TODO: swap domain to tsar.cc before prod)
         let url = reqwest::Url::parse_with_params(
             &format!("https://tsar.dev/api/client{}", path),
             &params_with_hwid,
