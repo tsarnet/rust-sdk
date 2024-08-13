@@ -16,33 +16,36 @@ fn client_test() {
     match client_init {
         Ok(client) => {
             println!(
-                "\x1b[32m[INIT SUCCESS] Hostname\x1b[0m: {}",
+                "Client successfully initialized. Hostname returned by server: {}",
                 client.dashboard_hostname
             );
 
-            match client.authenticate() {
-                Ok(user) => {
-                    println!("\x1b[32m[AUTH SUCCESS] User ID\x1b[0m: {}", user.id);
+            let mut user_result = client.authenticate();
 
-                    println!("{}", user.session_key);
+            while user_result.is_err() {
+                println!("Attempting to check if user is valid...");
+                std::thread::sleep(std::time::Duration::from_secs(3));
 
-                    loop {
-                        match user.heartbeat() {
-                            Ok(_) => println!("\x1b[32m[HEARTBEAT SUCCESS]\x1b[0m"),
-                            Err(err) => {
-                                println!("\x1b[31m[HEARTBEAT ERROR] Err: {:?}\x1b[0m: {}", err, err)
-                            }
-                        }
-                        std::thread::sleep(std::time::Duration::from_secs(1));
+                if client.validate().is_ok() {
+                    user_result = client.authenticate();
+                }
+            }
+
+            let user = user_result.unwrap();
+
+            println!("User authorized. User ID: {}", user.id);
+
+            loop {
+                std::thread::sleep(std::time::Duration::from_secs(1));
+                match user.heartbeat() {
+                    Ok(_) => println!("Heartbeat success"),
+                    Err(err) => {
+                        println!("Heartbeat failed: {:?}: {}", err, err)
                     }
                 }
-                Err(err) => println!(
-                    "\x1b[31m[AUTH ERROR] Failed auth: {:?}\x1b[0m: {}",
-                    err, err
-                ),
             }
         }
-        Err(err) => println!("\x1b[31m[INIT ERROR] {:?}\x1b[0m: {}", err, err),
+        Err(err) => println!("Failed to initialize client: {:?}: {}", err, err),
     }
 
     assert!(true);

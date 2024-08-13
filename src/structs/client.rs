@@ -1,5 +1,6 @@
 use super::user::User;
 use crate::errors::TsarError;
+use crate::Subscription;
 use base64::prelude::*;
 use colorful::Color;
 use colorful::Colorful;
@@ -39,9 +40,22 @@ pub struct ClientOptions {
     pub debug: bool,
 }
 
+/// Data returned by the TSAR API when initializing.
 #[derive(Deserialize)]
 struct InitializeReturnData {
     dashboard_hostname: String,
+}
+
+/// Data returned by the `client.validate()` function.
+#[derive(Deserialize)]
+pub struct ValidateReturnData {
+    pub id: String,
+    /// Name of the user. This could be their display name, username, or null.
+    pub name: Option<String>,
+    /// Avatar of the user. This can either be an image URL or null.
+    pub avatar: Option<String>,
+
+    pub subscription: Subscription,
 }
 
 impl Client {
@@ -78,6 +92,67 @@ impl Client {
             debug: options.debug,
             dashboard_hostname: init_result.dashboard_hostname,
         })
+    }
+
+    /// Same function as `authenticate()` except it does not open the user's browser and does not initialize a user session.
+    /// **DO NOT USE THIS IN-PLACE OF `authenticate()`! This must only be used as a means to verify that the user CAN authenticate.
+    /// This function serves two primary purposes:
+    /// - After `authentication()` fails you can keep a loop running that runs `validate()` every few seconds to see if the user is logged in yet, after which you can run `authenticate()` again.
+    /// - You can update the user's profile info (username & avatar) live by constantly replacing their info with the return of the `validate()` function.
+    pub fn validate(&self) -> Result<ValidateReturnData, TsarError> {
+        // TODO: Make this a macro & make windows work
+        if self.debug {
+            #[cfg(windows)]
+            print!("[AUTH] Validating...");
+
+            #[cfg(not(windows))]
+            print!(
+                "{}",
+                "[AUTH] Validating...".gradient_with_color(Color::Cyan, Color::SpringGreen4)
+            );
+        }
+
+        let params = vec![("app_id", self.app_id.as_str())];
+
+        let val_result =
+            Client::encrypted_api_call::<ValidateReturnData>("validate", &self.client_key, params);
+
+        let hwid = Self::get_hwid()?;
+
+        match val_result {
+            Ok(data) => {
+                if self.debug {
+                    #[cfg(windows)]
+                    println!("\r[AUTH] Successfully validated.");
+
+                    #[cfg(not(windows))]
+                    println!(
+                        "\r{}",
+                        "[AUTH] Successfully validated."
+                            .gradient_with_color(Color::Cyan, Color::SpringGreen4)
+                    );
+                }
+
+                return Ok(data);
+            }
+            Err(err) => {
+                if self.debug {
+                    #[cfg(windows)]
+                    println!("\r[AUTH] Failed to validate: {}", err.to_string());
+
+                    #[cfg(not(windows))]
+                    println!(
+                        "\r{}",
+                        format!("[AUTH] Failed to validate: {}", err.to_string())
+                            .gradient_with_color(Color::Cyan, Color::SpringGreen4)
+                    );
+                }
+
+                return Err(err);
+            }
+        };
+
+        Err(TsarError::Unauthorized)
     }
 
     /// Attempts to authenticate the user.
