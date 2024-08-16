@@ -31,13 +31,27 @@ pub struct Client {
 
 /// TSAR Client options. Pass this into the `new()` function of the TSAR Client.
 #[derive(Debug)]
-pub struct ClientOptions {
+pub struct ClientParams {
     /// The ID of your TSAR app. Should be in UUID format: 00000000-0000-0000-0000-000000000000
     pub app_id: String,
     /// The client decryption key for your TSAR app. Should be in base64 format. Always starts with "MFk..."
     pub client_key: String,
     /// Whether TSAR should print debug statements.
     pub debug: bool,
+}
+
+/// TSAR Client options. Pass this into the `new()` function of the TSAR Client.
+#[derive(Debug)]
+pub struct AuthParams {
+    /// Whether authenticate() should automatically open the user's browser when auth fails.
+    /// Disable this when using authenticate() more than once or in loops so that you dont spam the user's browser with tabs.
+    pub open_browser: bool,
+}
+
+impl Default for AuthParams {
+    fn default() -> Self {
+        Self { open_browser: true }
+    }
 }
 
 /// Data returned by the TSAR API when initializing.
@@ -65,7 +79,7 @@ impl Client {
     }
 
     /// Creates a new TSAR client.
-    pub fn new(options: ClientOptions) -> Result<Self, TsarError> {
+    pub fn new(options: ClientParams) -> Result<Self, TsarError> {
         // Verify that all options passed are in the right format
         if options.app_id.len() != 36 {
             return Err(TsarError::InvalidAppId);
@@ -94,70 +108,9 @@ impl Client {
         })
     }
 
-    /// Same function as `authenticate()` except it does not open the user's browser and does not initialize a user session.
-    /// **DO NOT USE THIS IN-PLACE OF `authenticate()`! This must only be used as a means to verify that the user CAN authenticate.
-    /// This function serves two primary purposes:
-    /// - After `authentication()` fails you can keep a loop running that runs `validate()` every few seconds to see if the user is logged in yet, after which you can run `authenticate()` again.
-    /// - You can update the user's profile info (username & avatar) live by constantly replacing their info with the return of the `validate()` function.
-    pub fn validate(&self) -> Result<ValidateReturnData, TsarError> {
-        // TODO: Make this a macro & make windows work
-        if self.debug {
-            #[cfg(windows)]
-            print!("[AUTH] Validating...");
-
-            #[cfg(not(windows))]
-            print!(
-                "{}",
-                "[AUTH] Validating...".gradient_with_color(Color::Cyan, Color::SpringGreen4)
-            );
-        }
-
-        let params = vec![("app_id", self.app_id.as_str())];
-
-        let val_result =
-            Client::encrypted_api_call::<ValidateReturnData>("validate", &self.client_key, params);
-
-        let hwid = Self::get_hwid()?;
-
-        match val_result {
-            Ok(data) => {
-                if self.debug {
-                    #[cfg(windows)]
-                    println!("\r[AUTH] Successfully validated.");
-
-                    #[cfg(not(windows))]
-                    println!(
-                        "\r{}",
-                        "[AUTH] Successfully validated."
-                            .gradient_with_color(Color::Cyan, Color::SpringGreen4)
-                    );
-                }
-
-                return Ok(data);
-            }
-            Err(err) => {
-                if self.debug {
-                    #[cfg(windows)]
-                    println!("\r[AUTH] Failed to validate: {}", err.to_string());
-
-                    #[cfg(not(windows))]
-                    println!(
-                        "\r{}",
-                        format!("[AUTH] Failed to validate: {}", err.to_string())
-                            .gradient_with_color(Color::Cyan, Color::SpringGreen4)
-                    );
-                }
-
-                return Err(err);
-            }
-        };
-
-        Err(TsarError::Unauthorized)
-    }
-
     /// Attempts to authenticate the user.
     /// If the user's HWID is not authorized, the function opens the user's default browser to prompt a login.
-    pub fn authenticate(&self) -> Result<User, TsarError> {
+    pub fn authenticate(&self, options: AuthParams) -> Result<User, TsarError> {
         // TODO: Make this a macro & make windows work
         if self.debug {
             #[cfg(windows)]
@@ -240,7 +193,9 @@ impl Client {
             },
         };
 
-        let _ = open::that(format!("https://{}/auth/{}", self.dashboard_hostname, hwid));
+        if options.open_browser {
+            let _ = open::that(format!("https://{}/auth/{}", self.dashboard_hostname, hwid));
+        }
 
         Err(TsarError::Unauthorized)
     }

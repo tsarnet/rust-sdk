@@ -9,7 +9,8 @@ mod structs;
 #[cfg(test)]
 mod tests;
 
+pub use structs::client::AuthParams;
 pub use structs::client::Client;
-pub use structs::client::ClientOptions;
+pub use structs::client::ClientParams;
 pub use structs::user::Subscription;
 pub use structs::user::User;

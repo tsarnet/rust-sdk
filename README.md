@@ -13,7 +13,7 @@ tsar-sdk = "0.1.0-beta.0"
 ## Example Usage
 
 ```rs main.rs
-use tsar_sdk::{Client, ClientOptions};
+use tsar_sdk::{AuthParams, Client, ClientParams};
 
 // You should have gotten these values after creating your app
 // You can find them in your app's configuration settings
@@ -21,7 +21,7 @@ const APP_ID: &str = "00000000-0000-0000-0000-000000000000";
 const CLIENT_KEY: &str = "MFk...";
 
 fn main() {
-  let options = ClientOptions {
+  let options = ClientParams {
       app_id: APP_ID.to_string(),
       client_key: CLIENT_KEY.to_string(),
       debug: true, // Print out debug statements
@@ -38,18 +38,18 @@ fn main() {
             client.dashboard_hostname
         );
 
-        // Check if user is authorized
-        let mut user_result = client.authenticate();
+        // Check if user is authorized. Default AuthParams open the user's browser when auth fails.
+        let mut user_result = client.authenticate(AuthParams::default());
 
-        // If they aren't, continue to check (via validate()) until they've authenticated themselves in their browser
+        // If they aren't, continue to check until they've authenticated themselves in their browser
         while user_result.is_err() {
             println!("Attempting to check if user is valid...");
-            std::thread::sleep(std::time::Duration::from_secs(3));
+            std::thread::sleep(std::time::Duration::from_secs(3)); // Keep a delay of at least 3 seconds to prevent rate-limiting.
 
-            // Once the user logs in and their HWID becomes valid, attempt to authenticate the client again
-            if client.validate().is_ok() {
-                user_result = client.authenticate();
-            }
+            // Make sure to set open_browser to false when in a loop, or else the browser will keep opening nonstop.
+            user_result = client.authenticate(AuthParams {
+                open_browser: false,
+            });
         }
 
         // At this point the user is authenticated
