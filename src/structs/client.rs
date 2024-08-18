@@ -79,7 +79,7 @@ impl Client {
     }
 
     /// Creates a new TSAR client.
-    pub fn new(options: ClientParams) -> Result<Self, TsarError> {
+    pub fn create(options: ClientParams) -> Result<Self, TsarError> {
         // Verify that all options passed are in the right format
         if options.app_id.len() != 36 {
             return Err(TsarError::InvalidAppId);
@@ -233,7 +233,7 @@ impl Client {
 
         // Send the request (TODO: swap domain to tsar.cc before prod)
         let url = reqwest::Url::parse_with_params(
-            &format!("https://tsar.dev/api/client{}", path),
+            &format!("https://tsar.cc/api/client{}", path),
             &params_with_hwid,
         )
         .or(Err(TsarError::RequestFailed))?;

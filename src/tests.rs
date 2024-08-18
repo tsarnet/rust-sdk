@@ -1,7 +1,7 @@
 use crate::{AuthParams, Client, ClientParams};
 
-const CLIENT_KEY: &str = "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEJ+N6c07hrVdt1FzX3+baICfl7nDIWJ+uMEyN5SA09ulN37mc7maQ8kOBwse9Yr4To5FIKMMx/BQwDTPu+TqvVQ==";
-const APP_ID: &str = "35f5bc1b-9a6d-442f-8813-6579e443d4be";
+const CLIENT_KEY: &str = "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEvJrwPvdeDUcV8Qr02tzgFrp+8qfCV/vG1HcQJYYV8u5vYUfGABMAYT0qOQltXEX9DTcB2fzLfwQnl7yiAaNruQ==";
+const APP_ID: &str = "f911842b-5b3d-4c59-b5d1-4adb8f71557b";
 
 #[test]
 fn client_test() {
@@ -11,7 +11,7 @@ fn client_test() {
         debug: true,
     };
 
-    let client_init = Client::new(options);
+    let client_init = Client::create(options);
 
     match client_init {
         Ok(client) => {

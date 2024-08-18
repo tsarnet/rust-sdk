@@ -28,7 +28,7 @@ fn main() {
   };
 
   // This will create a new client & perform a hash check on your binary
-  let client_init = Client::new(options);
+  let client_init = Client::create(options);
 
   // Check if client init was successful
   match client_init {
@@ -41,7 +41,7 @@ fn main() {
         // Check if user is authorized. Default AuthParams open the user's browser when auth fails.
         let mut user_result = client.authenticate(AuthParams::default());
 
-        // If they aren't, continue to check until they've authenticated themselves in their browser
+        // If they aren't authorized, continue to check until they've authenticated themselves in their browser.
         while user_result.is_err() {
             println!("Attempting to check if user is valid...");
             std::thread::sleep(std::time::Duration::from_secs(3)); // Keep a delay of at least 3 seconds to prevent rate-limiting.
