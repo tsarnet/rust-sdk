@@ -6,6 +6,10 @@ The official Rust SDK for TSAR. Rust is our primary focus, so this SDK will be t
 
 ## Example Import
 
+```sh
+cargo add tsar-sdk
+```
+
 ```toml Cargo.toml
 tsar-sdk = "0.1.0-beta.0"
 ```

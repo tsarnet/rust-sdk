@@ -2,7 +2,7 @@
 name = "tsar-sdk"
 version = "0.1.0-beta.0"
 description = "Official Rust SDK for TSAR"
-repository = "https://github.com/tsar-sec/rust-sdk"
+repository = "https://github.com/tsarnet/rust-sdk"
 keywords = ["api", "framework", "windows", "macos", "linux"]
 categories = ["api-bindings"]
 authors = ["x <x@tsar.cc>"]
