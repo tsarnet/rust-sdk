@@ -38,7 +38,7 @@ fn main() {
   match client_init {
       Ok(client) => {
         println!(
-            "Client successfully initialized. Hostname returned by server: {}",
+            "Client successfully initialized. {:#?}",
             client.dashboard_hostname
         );
 
@@ -59,7 +59,7 @@ fn main() {
         // At this point the user is authenticated
         let user = user_result.unwrap();
 
-        println!("User authorized. User ID: {}", user.id);
+        println!("User authorized. {:#?}", user);
 
         // Start a heartbeat loop to continue checking if the user is authorized (we recommend running this in a background thread)
         //

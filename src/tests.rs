@@ -15,10 +15,7 @@ fn client_test() {
 
     match client_init {
         Ok(client) => {
-            println!(
-                "Client successfully initialized. Hostname returned by server: {}",
-                client.dashboard_hostname
-            );
+            println!("Client successfully initialized. {:#?}", client);
 
             let mut user_result = client.authenticate(AuthParams::default());
 
@@ -33,7 +30,7 @@ fn client_test() {
 
             let user = user_result.unwrap();
 
-            println!("User authorized. User ID: {}", user.id);
+            println!("User authorized. {:#?}", user);
 
             loop {
                 std::thread::sleep(std::time::Duration::from_secs(1));
