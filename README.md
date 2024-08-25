@@ -39,7 +39,7 @@ fn main() {
       Ok(client) => {
         println!(
             "Client successfully initialized. {:#?}",
-            client.dashboard_hostname
+            client
         );
 
         // Check if user is authorized. Default AuthParams open the user's browser when auth fails.
