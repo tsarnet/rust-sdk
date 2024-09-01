@@ -8,7 +8,6 @@ fn client_test() {
     let options = ClientParams {
         app_id: APP_ID.to_string(),
         client_key: CLIENT_KEY.to_string(),
-        debug: true,
     };
 
     let client_init = Client::create(options);

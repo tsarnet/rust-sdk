@@ -11,7 +11,7 @@ cargo add tsar-sdk
 ```
 
 ```toml Cargo.toml
-tsar-sdk = "0.1.0-beta.0"
+tsar-sdk = "0.1.0-beta.1"
 ```
 
 ## Example Usage
@@ -28,7 +28,6 @@ fn main() {
   let options = ClientParams {
       app_id: APP_ID.to_string(),
       client_key: CLIENT_KEY.to_string(),
-      debug: true, // Print out debug statements
   };
 
   // This will create a new client & perform a hash check on your binary

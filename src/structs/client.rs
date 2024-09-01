@@ -37,8 +37,6 @@ pub struct ClientParams {
     pub app_id: String,
     /// The client decryption key for your TSAR app. Should be in base64 format. Always starts with "MFk..."
     pub client_key: String,
-    /// Whether TSAR should print debug statements.
-    pub debug: bool,
 }
 
 /// TSAR Client options. Pass this into the `new()` function of the TSAR Client.
