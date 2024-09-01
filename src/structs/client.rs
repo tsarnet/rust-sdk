@@ -2,8 +2,6 @@ use super::user::User;
 use crate::errors::TsarError;
 use crate::Subscription;
 use base64::prelude::*;
-use colorful::Color;
-use colorful::Colorful;
 use hardware_id::get_id;
 use p256::{
     ecdsa::{signature::Verifier, Signature, VerifyingKey},
@@ -14,6 +12,11 @@ use rsntp::SntpClient;
 use serde::de::DeserializeOwned;
 use serde::Deserialize;
 use serde_json::Value;
+use sha2::Digest;
+use sha2::Sha256;
+use std::env::current_exe;
+use std::fs::File;
+use std::io::Read;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 /// TSAR Client. Used to interact with the TSAR API.
@@ -23,8 +26,6 @@ pub struct Client {
     pub app_id: String,
     /// The client decryption key for your TSAR app. Should be in base64 format. Always starts with "MFk..."
     pub client_key: String,
-    /// Whether TSAR should print debug statements.
-    pub debug: bool,
     /// The hostname of your app's dashboard.
     pub dashboard_hostname: String,
 }
@@ -78,6 +79,26 @@ impl Client {
         get_id().or(Err(TsarError::FailedToGetHWID))
     }
 
+    /// Get the hash of the current binary
+    pub fn get_hash() -> Result<String, TsarError> {
+        let current_exe = current_exe().or(Err(TsarError::FailedToGetHash))?;
+
+        let mut file = File::open(&current_exe).or(Err(TsarError::FailedToGetHash))?;
+        let mut hasher = Sha256::new();
+        let mut buffer = vec![0; 1024];
+
+        loop {
+            let count = file.read(&mut buffer).or(Err(TsarError::FailedToGetHash))?;
+            if count == 0 {
+                break;
+            }
+            hasher.update(&buffer[..count]);
+        }
+
+        let hash_result = hasher.finalize();
+        Ok(format!("{:x}", hash_result))
+    }
+
     /// Creates a new TSAR client.
     pub fn create(options: ClientParams) -> Result<Self, TsarError> {
         // Verify that all options passed are in the right format
@@ -88,8 +109,6 @@ impl Client {
         if options.client_key.len() != 124 {
             return Err(TsarError::InvalidClientKey);
         }
-
-        // TODO: Binary hash check
 
         // Make the init request
         let params = vec![("app_id", options.app_id.as_str())];
@@ -103,7 +122,6 @@ impl Client {
         Ok(Self {
             app_id: options.app_id.to_string(),
             client_key: options.client_key.to_string(),
-            debug: options.debug,
             dashboard_hostname: init_result.dashboard_hostname,
         })
     }
@@ -111,18 +129,6 @@ impl Client {
     /// Attempts to authenticate the user.
     /// If the user's HWID is not authorized, the function opens the user's default browser to prompt a login.
     pub fn authenticate(&self, options: AuthParams) -> Result<User, TsarError> {
-        // TODO: Make this a macro & make windows work
-        if self.debug {
-            #[cfg(windows)]
-            print!("[AUTH] Authenticating...");
-
-            #[cfg(not(windows))]
-            print!(
-                "{}",
-                "[AUTH] Authenticating...".gradient_with_color(Color::Cyan, Color::SpringGreen4)
-            );
-        }
-
         let params = vec![("app_id", self.app_id.as_str())];
 
         let auth_result =
@@ -131,73 +137,25 @@ impl Client {
         let hwid = Self::get_hwid()?;
 
         match auth_result {
-            Ok(user) => {
-                if self.debug {
-                    #[cfg(windows)]
-                    println!("\r[AUTH] Successfully authenticated.");
-
-                    #[cfg(not(windows))]
-                    println!(
-                        "\r{}",
-                        "[AUTH] Successfully authenticated."
-                            .gradient_with_color(Color::Cyan, Color::SpringGreen4)
-                    );
-
-                    let name = user.name.clone().unwrap_or(user.clone().id);
-
-                    #[cfg(windows)]
-                    println!("[AUTH] Welcome, {}.", name);
-
-                    #[cfg(not(windows))]
-                    println!(
-                        "{} Welcome, {}.",
-                        "[AUTH]".gradient_with_color(Color::Cyan, Color::SpringGreen4),
-                        name.gradient_with_color(Color::SpringGreen4, Color::Cyan)
-                    );
+            Ok(user) => return Ok(user),
+            Err(TsarError::Unauthorized) => {
+                if options.open_browser {
+                    let _ =
+                        open::that(format!("https://{}/auth/{}", self.dashboard_hostname, hwid));
                 }
-
-                return Ok(user);
+                return Err(TsarError::Unauthorized);
             }
-            Err(err) => match err {
-                TsarError::Unauthorized => {
-                    // TODO: Make errors a red gradient
-                    if self.debug {
-                        #[cfg(windows)]
-                        println!("\r[AUTH] Failed to authenticate: HWID not authorized. Please visit https://{}/auth/{} to update your HWID.", self.dashboard_hostname, hwid);
-
-                        #[cfg(not(windows))]
-                        println!(
-                            "\r{} Please visit {} to update your HWID.",
-                            "[AUTH] Failed to authenticate: HWID not authorized."
-                                .gradient_with_color(Color::Cyan, Color::SpringGreen4),
-                            format!("https://{}/auth/{}", self.dashboard_hostname, hwid)
-                                .color(Color::Blue)
-                        );
-                    };
+            Err(TsarError::HashUnauthorized) => {
+                if options.open_browser {
+                    let _ = open::that(format!(
+                        "https://{}/assets?outdated=true",
+                        self.dashboard_hostname
+                    ));
                 }
-                _ => {
-                    if self.debug {
-                        #[cfg(windows)]
-                        println!("\r[AUTH] Failed to authenticate: {}", err.to_string());
-
-                        #[cfg(not(windows))]
-                        println!(
-                            "\r{}",
-                            format!("[AUTH] Failed to authenticate: {}", err.to_string())
-                                .gradient_with_color(Color::Cyan, Color::SpringGreen4)
-                        );
-                    }
-
-                    return Err(err);
-                }
-            },
-        };
-
-        if options.open_browser {
-            let _ = open::that(format!("https://{}/auth/{}", self.dashboard_hostname, hwid));
+                return Err(TsarError::HashUnauthorized);
+            }
+            Err(err) => return Err(err),
         }
-
-        Err(TsarError::Unauthorized)
     }
 
     /// Query an endpoint from the TSAR API.
@@ -208,6 +166,7 @@ impl Client {
         params: Vec<(&str, &str)>,
     ) -> Result<T, TsarError> {
         let hwid = Client::get_hwid()?;
+        let hash = Client::get_hash()?;
 
         // Convert client_key der to buffer
         let pub_key_bytes = BASE64_STANDARD
@@ -228,13 +187,14 @@ impl Client {
         };
 
         // Add HWID to the params
-        let mut params_with_hwid = params.to_vec();
-        params_with_hwid.push(("hwid", &hwid));
+        let mut full_params = params.to_vec();
+        full_params.push(("hwid", &hwid));
+        full_params.push(("hash", &hash));
 
-        // Send the request (TODO: swap domain to tsar.cc before prod)
+        // Send the request
         let url = reqwest::Url::parse_with_params(
             &format!("https://tsar.cc/api/client{}", path),
-            &params_with_hwid,
+            &full_params,
         )
         .or(Err(TsarError::RequestFailed))?;
 
@@ -247,6 +207,7 @@ impl Client {
                 StatusCode::UNAUTHORIZED => return Err(TsarError::Unauthorized),
                 StatusCode::TOO_MANY_REQUESTS => return Err(TsarError::RateLimited),
                 StatusCode::SERVICE_UNAVAILABLE => return Err(TsarError::AppPaused),
+                StatusCode::FORBIDDEN => return Err(TsarError::HashUnauthorized),
                 _ => return Err(TsarError::ServerError),
             }
         }

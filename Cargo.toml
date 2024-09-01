@@ -1,6 +1,6 @@
 [package]
 name = "tsar-sdk"
-version = "0.1.0-beta.0"
+version = "0.1.0-beta.1"
 description = "Official Rust SDK for TSAR"
 repository = "https://github.com/tsarnet/rust-sdk"
 keywords = ["api", "framework", "windows", "macos", "linux"]
@@ -13,13 +13,13 @@ include = ["**/*.rs", "Cargo.toml"]
 
 
 [dependencies]
-reqwest = { version = "0.11.0", features = ['json', 'blocking'] }
-p256 = { version = "0.13.2", features = ["ecdsa-core"] }
+reqwest = { version = "0.11", features = ['json', 'blocking'] }
+p256 = { version = "0.13", features = ["ecdsa-core"] }
 serde = { version = "1", features = ['derive'] }
 serde_json = { version = "1" }
-hardware-id = "0.3.0"
-thiserror = "1.0.0"
-colorful = "0.2.2"
-base64 = "0.22.0"
-rsntp = "4.0.0"
-open = "5.0.0"
+hardware-id = "0.3"
+thiserror = "1"
+base64 = "0.22"
+rsntp = "4"
+open = "5"
+sha2 = "0.10"

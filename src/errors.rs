@@ -14,6 +14,10 @@ pub enum TsarError {
     #[error("Failed to get HWID.")]
     FailedToGetHWID,
 
+    /// Failed to get the program's hash.
+    #[error("Failed to get program's hash.")]
+    FailedToGetHash,
+
     /// A public key is invalid.
     #[error("Invalid public key. Make sure that your key starts with \"MFk...\".")]
     InvalidPublicKey,
@@ -42,6 +46,10 @@ pub enum TsarError {
     /// This means that the API failed to find a resource.
     #[error("App not found.")]
     AppNotFound,
+    /// The TSAR API returned a 403: Forbidden status code.
+    /// This means that the program's hash did not match to a valid app asset.
+    #[error("The program hash is not authorized.")]
+    HashUnauthorized,
     /// The TSAR API returned a 401: Unauthorized status code.
     /// This means that the user's HWID did not match to a subscription object.
     #[error("Your HWID is not authorized.")]
