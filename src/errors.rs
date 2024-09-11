@@ -18,10 +18,6 @@ pub enum TsarError {
     #[error("Failed to get program's hash.")]
     FailedToGetHash,
 
-    /// A public key is invalid.
-    #[error("Invalid public key. Make sure that your key starts with \"MFk...\".")]
-    InvalidPublicKey,
-
     /// Failed to send a request to the TSAR API.
     #[error("Failed to send a request to the TSAR API.")]
     RequestFailed,

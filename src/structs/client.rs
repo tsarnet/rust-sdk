@@ -169,13 +169,13 @@ impl Client {
         // Convert client_key der to buffer
         let pub_key_bytes = BASE64_STANDARD
             .decode(public_key)
-            .or(Err(TsarError::InvalidPublicKey))
+            .or(Err(TsarError::InvalidClientKey))
             .unwrap();
 
         // Build public key from buffer
         let pub_key: VerifyingKey =
             VerifyingKey::from_public_key_der(pub_key_bytes[..].try_into().unwrap())
-                .or(Err(TsarError::InvalidPublicKey))?;
+                .or(Err(TsarError::InvalidClientKey))?;
 
         // Append a / to path if it does not start with one
         let path = if path.starts_with('/') {
