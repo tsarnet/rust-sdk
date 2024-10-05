@@ -1,6 +1,5 @@
 use super::user::User;
 use crate::errors::TsarError;
-use crate::Subscription;
 use base64::prelude::*;
 use hardware_id::get_id;
 use p256::{
@@ -57,18 +56,6 @@ impl Default for AuthParams {
 #[derive(Deserialize)]
 struct InitializeReturnData {
     dashboard_hostname: String,
-}
-
-/// Data returned by the `client.validate()` function.
-#[derive(Deserialize)]
-pub struct ValidateReturnData {
-    pub id: String,
-    /// Name of the user. This could be their display name, username, or null.
-    pub name: Option<String>,
-    /// Avatar of the user. This can either be an image URL or null.
-    pub avatar: Option<String>,
-
-    pub subscription: Subscription,
 }
 
 impl Client {

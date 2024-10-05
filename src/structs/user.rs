@@ -6,8 +6,8 @@ use crate::{errors::TsarError, Client};
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct User {
     pub id: String,
-    /// Username of the user. This could be their display name, username, or null.
-    pub username: Option<String>,
+    /// Name of the user. This could be their display name, username, or null.
+    pub name: Option<String>,
     /// Avatar of the user. This can either be an image URL or null.
     pub avatar: Option<String>,
 

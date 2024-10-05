@@ -1,6 +1,6 @@
 [package]
 name = "tsar-sdk"
-version = "0.1.0-beta.1"
+version = "0.1.0-beta.2"
 description = "Official Rust SDK for TSAR"
 repository = "https://github.com/tsarnet/rust-sdk"
 keywords = ["api", "framework", "windows", "macos", "linux"]
