@@ -268,8 +268,8 @@ impl Client {
             system_time.duration_since(ntp_time).unwrap()
         };
 
-        // Check that time is synced within a 30 second leeway
-        if duration.as_millis() > 30000 || timestamp < (system_time - Duration::from_secs(30)) {
+        // Check that time is synced within a 5 minute leeway
+        if duration.as_millis() > 300000 || timestamp < (system_time - Duration::from_secs(300)) {
             return Err(TsarError::TamperedResponse);
         }
 
